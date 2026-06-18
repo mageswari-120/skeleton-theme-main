@@ -1,0 +1,82 @@
+{% doc %}
+  blocks/collection-description.liquid  —  Selena Theme  (OS 3.0)
+  ────────────────────────────────────────────────────────────────
+  Fixed slot rendered by the section's content_for 'block' loop.
+  Reads closest.collection for description text.
+
+  Section → content_for 'block', id:'cl-desc' → THIS FILE
+{% enddoc %}
+
+{%- liquid
+  assign s          = block.settings
+  assign collection = closest.collection
+-%}
+
+<div
+  class="cl-collection-description cl-desc--{{ s.text_case }}"
+  style="
+    --cl-desc-pt: {{ s.padding_top }}px;
+    --cl-desc-pb: {{ s.padding_bottom }}px;
+  "
+  {{ block.shopify_attributes }}
+>
+  {%- if collection.description != blank -%}
+    <div class="cl-desc__body">{{ collection.description }}</div>
+  {%- elsif request.design_mode -%}
+    <div class="cl-desc__body cl-desc__body--placeholder">
+      <p>Collection description will appear here.</p>
+    </div>
+  {%- endif -%}
+</div>
+
+{% stylesheet %}
+.cl-collection-description {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top:    var(--cl-desc-pt, 0);
+  padding-bottom: var(--cl-desc-pb, 0);
+  color: inherit;
+}
+.cl-desc__body {
+  opacity: 0.78;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+.cl-desc__body > :first-child { margin-top: 0; }
+.cl-desc__body > :last-child  { margin-bottom: 0; }
+.cl-desc__body--placeholder   { opacity: 0.35; font-style: italic; }
+.cl-desc--uppercase .cl-desc__body { text-transform: uppercase; }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Collection description",
+  "settings": [
+    {
+      "type": "select",
+      "id": "text_case",
+      "label": "Text case",
+      "options": [
+        { "value": "default",   "label": "Default" },
+        { "value": "uppercase", "label": "Uppercase" }
+      ],
+      "default": "default"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0, "max": 30, "step": 1, "unit": "px",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0, "max": 30, "step": 1, "unit": "px",
+      "default": 0
+    }
+  ]
+}
+{% endschema %}

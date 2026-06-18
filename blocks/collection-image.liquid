@@ -1,0 +1,252 @@
+{% doc %}
+  blocks/collection-image.liquid  —  Selena Theme  (OS 3.0)
+  ──────────────────────────────────────────────────────────
+  Renders the collection's featured image (or a custom upload).
+  Must be a child of blocks/collection-card.liquid.
+
+  Reads:  closest.collection  (passed by the parent card via
+          content_for 'blocks', closest.collection: collection)
+
+  The visual shape (arch, circle, oval, pill …) is driven by
+  the shape class on the PARENT card element — this block only
+  controls ratio, fit, border, overlay and the arch dimensions
+  that are used as CSS custom properties.
+{% enddoc %}
+ 
+{%- liquid  
+  assign s          = block.settings
+  assign collection = closest.collection
+
+  assign image = collection.featured_image
+  if s.image_source == 'custom' and s.image != blank
+    assign image = s.image
+  endif
+
+  assign border_alpha = s.border_opacity | divided_by: 100.0
+
+  assign img_classes = 'cl-collection-image'
+  assign img_classes = img_classes | append: ' cl-img--ratio-' | append: s.image_ratio
+  assign img_classes = img_classes | append: ' cl-img--fit-'   | append: s.image_fit
+  if s.transparent_bg
+    assign img_classes = img_classes | append: ' cl-img--transparent'
+  endif
+  if s.media_overlay
+    assign img_classes = img_classes | append: ' cl-img--has-overlay'
+  endif
+-%}
+
+<div
+  class="{{ img_classes }}"
+  style="
+    --cl-img-radius:          {{ s.border_radius }}px;
+    --cl-img-overlay-opacity: {{ s.overlay | times: 0.1 }};
+    {%- if s.border_style != 'none' -%}
+      --cl-img-border: {{ s.border_width }}px solid rgba(0,0,0,{{ border_alpha }});
+    {%- endif -%}
+  "
+  {{ block.shopify_attributes }}
+>
+  <a
+    class="cl-collection-image__media"
+    href="{{ collection.url | default: '#' }}"
+    {%- if image == blank %} aria-hidden="true" tabindex="-1"{%- endif -%}
+  >
+    {%- if image != blank -%}
+      {{
+        image
+        | image_url: width: 1066
+        | image_tag:
+          loading: 'lazy',
+          widths: '165,360,535,750,940,1066',
+          sizes: '(min-width: 990px) 20vw, (min-width: 750px) 33vw, 50vw',
+          class: 'cl-collection-image__img',
+          alt: image.alt | default: collection.title | escape
+      }}
+    {%- else -%}
+      {{ 'collection-1' | placeholder_svg_tag: 'cl-collection-image__img cl-collection-image__placeholder' }}
+    {%- endif -%}
+
+    {%- if s.media_overlay -%}
+      <span class="cl-collection-image__overlay" aria-hidden="true"></span>
+    {%- endif -%}
+  </a>
+</div>
+
+{% stylesheet %}
+/* ─────────────────────────────────────────────
+   Collection Image — block styles
+───────────────────────────────────────────── */
+
+.cl-collection-image {
+  width: 100%;
+  display: block;
+}
+
+.cl-collection-image__media {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  width: 100%;
+  border-radius: var(--cl-img-radius, 0);
+  border: var(--cl-img-border, none);
+  background: rgba(0,0,0,0.05);
+}
+
+/* ── Aspect ratios ── */
+.cl-img--ratio-square    .cl-collection-image__media { aspect-ratio: 1 / 1; }
+.cl-img--ratio-landscape .cl-collection-image__media { aspect-ratio: 4 / 3; }
+.cl-img--ratio-portrait  .cl-collection-image__media { aspect-ratio: 3 / 4; }
+.cl-img--ratio-adapt     .cl-collection-image__media { aspect-ratio: auto; }
+
+/* ── Image fill ── */
+.cl-collection-image__img,
+.cl-collection-image__placeholder {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: var(--cl-img-pos, center);
+  transition: transform 0.5s ease;
+}
+.cl-img--fit-contain .cl-collection-image__img,
+.cl-img--fit-contain .cl-collection-image__placeholder {
+  object-fit: contain;
+}
+
+/* Transparent background (for isolated product/icon images) */
+.cl-img--transparent .cl-collection-image__media { background: transparent; }
+
+/* Hover zoom — only when reduced-motion is not requested */
+@media (prefers-reduced-motion: no-preference) {
+  .cl-collection-card:hover .cl-collection-image__img {
+    transform: scale(1.04);
+  }
+}
+
+/* ── Dark scrim overlay ── */
+.cl-collection-image__overlay {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: var(--cl-img-overlay-opacity, 0.2);
+  pointer-events: none;
+}
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Collection image",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Image source"
+    },
+    {
+      "type": "select",
+      "id": "image_source",
+      "label": "Image source",
+      "options": [
+        { "value": "collection", "label": "Collection image" },
+        { "value": "custom",     "label": "Custom image" }
+      ],
+      "default": "collection",
+      "info": "Custom image overrides the collection's featured image."
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Custom image",
+      "visible_if": "{{ block.settings.image_source == 'custom' }}"
+    },
+    {
+      "type": "header",
+      "content": "Display"
+    },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "Image ratio",
+      "options": [
+        { "value": "square",    "label": "Square" },
+        { "value": "landscape", "label": "Landscape" },
+        { "value": "portrait",  "label": "Portrait" },
+        { "value": "adapt",     "label": "Adapt to image" }
+      ],
+      "default": "adapt"
+    },
+    {
+      "type": "select",
+      "id": "image_fit",
+      "label": "Image fit",
+      "options": [
+        { "value": "cover",   "label": "Cover (fill)" },
+        { "value": "contain", "label": "Contain (show whole image)" }
+      ],
+      "default": "cover"
+    },
+    {
+      "type": "checkbox",
+      "id": "transparent_bg",
+      "label": "Transparent background",
+      "default": false,
+      "info": "Removes the grey backdrop. Use with Contain fit for isolated images."
+    },
+    {
+      "type": "header",
+      "content": "Overlay"
+    },
+    {
+      "type": "checkbox",
+      "id": "media_overlay",
+      "label": "Enable overlay",
+      "default": false,
+      "info": "Dark scrim over the image. Useful when text sits on top."
+    },
+    {
+      "type": "range",
+      "id": "overlay",
+      "label": "Overlay intensity",
+      "min": 0, "max": 9, "step": 1,
+      "default": 2,
+      "visible_if": "{{ block.settings.media_overlay }}"
+    },
+    {
+      "type": "header",
+      "content": "Border"
+    },
+    {
+      "type": "select",
+      "id": "border_style",
+      "label": "Border style",
+      "options": [
+        { "value": "none",  "label": "None" },
+        { "value": "solid", "label": "Solid" }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "range",
+      "id": "border_width",
+      "label": "Border width",
+      "min": 1, "max": 5, "step": 1, "unit": "px",
+      "default": 1,
+      "visible_if": "{{ block.settings.border_style != 'none' }}"
+    },
+    {
+      "type": "range",
+      "id": "border_opacity",
+      "label": "Border opacity",
+      "min": 0, "max": 100, "step": 1, "unit": "%",
+      "default": 100,
+      "visible_if": "{{ block.settings.border_style != 'none' }}"
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "label": "Border radius",
+      "min": 0, "max": 30, "step": 1, "unit": "px",
+      "default": 0
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,42 @@
+{%- comment -%}
+  Visible demo cards when no collections are selected in the section.
+{%- endcomment -%}
+
+{%- liquid
+  assign demo_titles = 'Anarkali suits,Kurta sets,Festive collection,Modern wear,Duppatas' | split: ','
+  assign card_classes = card_classes | default: 'cl-collection-card'
+  assign card_style = card_style | default: ''
+-%}
+
+{%- for title in demo_titles -%}
+  <div class="{{ card_classes }} cl-card--demo" role="listitem" style="{{ card_style }}">
+    <div class="cl-card__inner">
+      <div class="cl-collection-image cl-img--ratio-adapt">
+        <span class="cl-collection-image__media cl-card--demo__media" aria-hidden="true">
+          {{ 'collection-' | append: forloop.index | placeholder_svg_tag: 'cl-collection-image__img cl-card--demo__img' }}
+        </span>
+      </div>
+      <h4 class="cl-collection-title">
+        <span class="cl-collection-title__link">{{ title }}</span>
+        <span class="cl-collection-title__count">12</span>
+      </h4>
+    </div>
+  </div>
+{%- endfor -%}
+
+{% stylesheet %}
+.cl-card--demo__media {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.04);
+}
+.cl-card--demo__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.35;
+}
+{% endstylesheet %}
