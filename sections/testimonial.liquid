@@ -1,0 +1,124 @@
+{%- comment -%}
+  ============================================================
+  Section : Testimonial  —  Skeleton Theme  (OS 2.0 / theme blocks)
+  ============================================================
+  Architecture (all nesting via {% content_for 'blocks' %}):
+
+    Testimonial (section)
+     ├─ testimonial-header        → heading / text / button
+     └─ testimonial-content       → testimonial-card
+                                     ├─ testimonial-image (static)
+                                     ├─ testimonial-heading
+                                     ├─ testimonial-text
+                                     ├─ testimonial-rating
+                                     └─ testimonial-client
+
+  Section owns only container / width / color scheme / padding.
+  Layout (grid|carousel) lives in the testimonial-content block.
+  ============================================================
+{%- endcomment -%}
+ 
+{%- liquid
+  assign s = section.settings 
+
+  assign wrap_class = 'testimonial__wrap'
+  if s.enable_container
+    assign wrap_class = wrap_class | append: ' testimonial__wrap--boxed'
+  elsif s.width == 'container_fluid'
+    assign wrap_class = wrap_class | append: ' testimonial__wrap--fluid'
+  else
+    assign wrap_class = wrap_class | append: ' testimonial__wrap--full'
+  endif
+-%}
+
+<style>
+  #shopify-section-{{ section.id }} {
+    --ts-pt: {{ s.padding_top }}px;
+    --ts-pb: {{ s.padding_bottom }}px;
+  }
+</style>
+
+<div class="testimonial color-{{ s.color_scheme }}" data-section-id="{{ section.id }}">
+  <div class="{{ wrap_class }}">
+    {% content_for 'blocks' %}
+  </div>
+</div>
+
+{% stylesheet %} 
+  .testimonial {
+    padding-top: var(--ts-pt, 40px);
+    padding-bottom: var(--ts-pb, 40px);
+    background: var(--color-background);
+    color: var(--color-foreground);
+  }
+  .testimonial__wrap--boxed {
+    max-width: var(--page-width, 1400px);
+    margin-inline: auto;
+    padding-inline: var(--page-margin, 20px);
+  }
+  .testimonial__wrap--fluid { padding-inline: var(--page-margin, 20px); }
+  .testimonial__wrap--full  { padding-inline: 0; }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Testimonial",
+  "tag": "section",
+  "class": "section-testimonial",
+  "blocks": [
+    { "type": "testimonial-header" },
+    { "type": "testimonial-content" }
+  ],
+  "settings": [
+    {
+      "type": "header",
+      "content": "Section settings"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_container",
+      "label": "Enable container",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "width",
+      "label": "Width",
+      "options": [
+        { "value": "full",            "label": "Full width" },
+        { "value": "container_fluid", "label": "Container fluid" }
+      ],
+      "default": "full"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0, "max": 200, "step": 2, "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0, "max": 200, "step": 2, "unit": "px",
+      "default": 40
+    }
+  ],
+  "presets": [
+    {
+      "name": "Testimonial"
+    }
+  ]
+}
+{% endschema %}

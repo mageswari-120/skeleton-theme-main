@@ -1,0 +1,448 @@
+{% doc %}
+  Testimonial content — layout engine. Renders its testimonial-card children
+  as either a responsive grid or a scroll-snap carousel with optional
+  arrows / dots / autoplay / loop.
+
+  @example
+  {% content_for 'block', type: 'testimonial-content', id: 'content' %}
+{% enddoc %}
+
+{%- liquid
+  assign s = block.settings
+ 
+  assign is_carousel = false
+  if s.layout_type == 'carousel'
+    assign is_carousel = true
+  endif
+
+  assign show_arrows = false
+  assign show_dots = false
+  if s.nav_style == 'navigation' or s.nav_style == 'both'
+    assign show_arrows = true
+  endif
+  if s.nav_style == 'pagination' or s.nav_style == 'both'
+    assign show_dots = true
+  endif
+
+  assign nav_border_alpha = s.nav_border_opacity | divided_by: 100.0
+
+  assign nav_scheme_class = ''
+  unless s.nav_inherit_color
+    assign nav_scheme_class = 'color-' | append: s.nav_color_scheme
+  endunless
+
+  assign autoplay_ms = 0
+  if is_carousel and s.autoplay_seconds > 0
+    assign autoplay_ms = s.autoplay_seconds | times: 1000
+  endif
+-%}
+
+<div
+  class="ts-content"
+  style="
+    --ts-cols-desktop: {{ s.columns_desktop }};
+    --ts-cols-mobile: {{ s.columns_mobile }};
+    --ts-col-gap: {{ s.column_gap }}px;
+    --ts-row-gap: {{ s.row_gap }}px;
+    --ts-nav-radius: {{ s.nav_border_radius }}px;
+    --ts-nav-pt: {{ s.nav_padding_top }}px;
+    --ts-nav-pb: {{ s.nav_padding_bottom }}px;
+    --ts-nav-pl: {{ s.nav_padding_left }}px;
+    --ts-nav-pr: {{ s.nav_padding_right }}px;
+    {%- if s.nav_border_style != 'none' -%}
+      --ts-nav-border: {{ s.nav_border_width }}px solid rgba(128,128,128,{{ nav_border_alpha }});
+    {%- endif -%}
+  "
+  {{ block.shopify_attributes }}
+>
+  {%- comment -%}
+    A theme block may render its child blocks only once, so the track/grid
+    container is shared and only its class + data attributes change.
+  {%- endcomment -%}
+  {%- if is_carousel -%}
+    <div
+      class="ts-carousel"
+      data-ts-carousel
+      {% if autoplay_ms > 0 %}data-ts-autoplay="{{ autoplay_ms }}"{% endif %}
+      {% if s.loop %}data-ts-loop="true"{% endif %}
+    >
+  {%- endif -%}
+
+  <div
+    class="{% if is_carousel %}ts-carousel__track{% else %}ts-grid{% endif %}"
+    role="list"
+    {% if is_carousel %}data-ts-track{% endif %}
+  >
+    {% content_for 'blocks' %}
+  </div>
+
+  {%- if is_carousel -%}
+      {%- if show_arrows -%}
+        <div class="ts-carousel__nav {{ nav_scheme_class }}">
+          <button type="button" class="ts-carousel__arrow" data-ts-prev aria-label="Previous">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <button type="button" class="ts-carousel__arrow" data-ts-next aria-label="Next">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+      {%- endif -%}
+
+      {%- if show_dots -%}
+        <div class="ts-carousel__dots" data-ts-dots aria-hidden="true"></div>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+</div>
+
+{% stylesheet %}
+  .ts-content { position: relative; width: 100%; }
+
+  /* ── Grid ── */
+  .ts-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--ts-cols-mobile, 1), minmax(0, 1fr));
+    column-gap: var(--ts-col-gap, 20px);
+    row-gap: var(--ts-row-gap, 20px);
+  }
+  @media (min-width: 750px) {
+    .ts-grid { grid-template-columns: repeat(var(--ts-cols-desktop, 3), minmax(0, 1fr)); }
+  }
+
+  /* ── Carousel ── */
+  .ts-carousel { position: relative; }
+  .ts-carousel__track {
+    display: flex;
+    gap: var(--ts-col-gap, 20px);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+  .ts-carousel__track::-webkit-scrollbar { display: none; }
+  .ts-carousel__track > * {
+    scroll-snap-align: start;
+    flex: 0 0 calc((100% - (var(--ts-cols-mobile, 1) - 1) * var(--ts-col-gap, 20px)) / var(--ts-cols-mobile, 1));
+  }
+  @media (min-width: 750px) {
+    .ts-carousel__track > * {
+      flex-basis: calc((100% - (var(--ts-cols-desktop, 3) - 1) * var(--ts-col-gap, 20px)) / var(--ts-cols-desktop, 3));
+    }
+  }
+  .ts-carousel__nav {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    pointer-events: none;
+    padding: var(--ts-nav-pt, 0) var(--ts-nav-pr, 0) var(--ts-nav-pb, 0) var(--ts-nav-pl, 0);
+  }
+  .ts-carousel__arrow {
+    pointer-events: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: var(--ts-nav-radius, 50%);
+    border: var(--ts-nav-border, 1px solid rgba(0,0,0,0.12));
+    background: var(--color-background, #fff);
+    color: var(--color-foreground, #1a1a1a);
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.10);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 2;
+  }
+  .ts-carousel__arrow:first-child { margin-left: -22px; }
+  .ts-carousel__arrow:last-child  { margin-right: -22px; }
+  .ts-carousel__arrow svg { width: 18px; height: 18px; display: block; }
+  .ts-carousel__arrow:hover { transform: scale(1.08); }
+  .ts-carousel__arrow[disabled] { opacity: 0.28; cursor: default; transform: none; }
+  .ts-carousel__dots {
+    display: flex;
+    justify-content: center;
+    gap: 0.45rem;
+    margin-top: 1.25rem;
+  }
+  .ts-carousel__dot {
+    width: 8px;
+    height: 8px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.22;
+    cursor: pointer;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  .ts-carousel__dot.is-active { opacity: 1; transform: scale(1.35); }
+  @media (prefers-reduced-motion: reduce) {
+    .ts-carousel__track { scroll-behavior: auto; }
+  }
+{% endstylesheet %}
+
+{% javascript %}
+(function () {
+  'use strict';
+  function initCarousel(root) {
+    var track = root.querySelector('[data-ts-track]');
+    if (!track) return;
+    var items = Array.prototype.slice.call(track.children);
+    if (!items.length) return;
+    var prev = root.querySelector('[data-ts-prev]');
+    var next = root.querySelector('[data-ts-next]');
+    var dotsWrap = root.querySelector('[data-ts-dots]');
+    var loop = root.getAttribute('data-ts-loop') === 'true';
+    var autoplay = parseInt(root.getAttribute('data-ts-autoplay'), 10) || 0;
+    var dots = [];
+
+    function sw() { return items[1] ? items[1].offsetLeft - items[0].offsetLeft : items[0].getBoundingClientRect().width; }
+    function ai() { return Math.round(track.scrollLeft / (sw() || 1)); }
+    function atEnd() { return (track.scrollLeft + track.clientWidth) >= (track.scrollWidth - 2); }
+    function atStart() { return track.scrollLeft <= 2; }
+    function ua() {
+      if (loop) { if (prev) prev.disabled = false; if (next) next.disabled = false; return; }
+      if (prev) prev.disabled = atStart();
+      if (next) next.disabled = atEnd();
+    }
+    function ud() { var i = ai(); dots.forEach(function (d, j) { d.classList.toggle('is-active', j === i); }); }
+    function go(dir) {
+      if (dir > 0 && loop && atEnd()) { track.scrollTo({ left: 0, behavior: 'smooth' }); return; }
+      if (dir < 0 && loop && atStart()) { track.scrollTo({ left: track.scrollWidth, behavior: 'smooth' }); return; }
+      track.scrollBy({ left: dir * sw(), behavior: 'smooth' });
+    }
+
+    if (prev) prev.addEventListener('click', function () { go(-1); });
+    if (next) next.addEventListener('click', function () { go(1); });
+
+    if (dotsWrap) {
+      items.forEach(function (_, i) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'ts-carousel__dot';
+        b.setAttribute('aria-label', 'Slide ' + (i + 1));
+        b.addEventListener('click', function () { track.scrollTo({ left: sw() * i, behavior: 'smooth' }); });
+        dotsWrap.appendChild(b);
+        dots.push(b);
+      });
+    }
+
+    track.addEventListener('scroll', function () { ua(); ud(); }, { passive: true });
+    ua(); ud();
+
+    if (autoplay > 0) {
+      var timer = null;
+      function start() { stop(); timer = setInterval(function () { go(1); }, autoplay); }
+      function stop() { if (timer) { clearInterval(timer); timer = null; } }
+      root.addEventListener('mouseenter', stop);
+      root.addEventListener('mouseleave', start);
+      track.addEventListener('touchstart', stop, { passive: true });
+      start();
+    }
+  }
+
+  function initAll(scope) { (scope || document).querySelectorAll('.ts-content [data-ts-carousel]').forEach(initCarousel); }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () { initAll(); });
+  } else {
+    initAll();
+  }
+  document.addEventListener('shopify:section:load', function (e) { initAll(e.target); });
+})();
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "Testimonial content",
+  "blocks": [
+    { "type": "testimonial-card" }
+  ],
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "layout_type",
+      "label": "Type",
+      "options": [
+        { "value": "grid",     "label": "Grid" },
+        { "value": "carousel", "label": "Carousel" }
+      ],
+      "default": "carousel"
+    },
+    {
+      "type": "range",
+      "id": "column_gap",
+      "label": "Column gap",
+      "min": 0, "max": 50, "step": 1, "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "row_gap",
+      "label": "Row gap",
+      "min": 0, "max": 50, "step": 1, "unit": "px",
+      "default": 20,
+      "visible_if": "{{ block.settings.layout_type == 'grid' }}"
+    },
+    {
+      "type": "header",
+      "content": "Column settings"
+    },
+    {
+      "type": "select",
+      "id": "columns_desktop",
+      "label": "Desktop columns",
+      "options": [
+        { "value": "2", "label": "2" },
+        { "value": "3", "label": "3" },
+        { "value": "4", "label": "4" }
+      ],
+      "default": "3"
+    },
+    {
+      "type": "select",
+      "id": "columns_mobile",
+      "label": "Mobile columns",
+      "options": [
+        { "value": "1", "label": "1" },
+        { "value": "2", "label": "2" }
+      ],
+      "default": "1"
+    },
+    {
+      "type": "header",
+      "content": "Carousel settings",
+      "visible_if": "{{ block.settings.layout_type == 'carousel' }}"
+    },
+    {
+      "type": "range",
+      "id": "autoplay_seconds",
+      "label": "Change slide every",
+      "min": 0, "max": 5, "step": 1, "unit": "s",
+      "default": 0,
+      "info": "Set to 0 to disable autoplay.",
+      "visible_if": "{{ block.settings.layout_type == 'carousel' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "loop",
+      "label": "Loop",
+      "default": true,
+      "visible_if": "{{ block.settings.layout_type == 'carousel' }}"
+    },
+    {
+      "type": "header",
+      "content": "Navigation settings",
+      "visible_if": "{{ block.settings.layout_type == 'carousel' }}"
+    },
+    {
+      "type": "select",
+      "id": "nav_style",
+      "label": "Style",
+      "options": [
+        { "value": "navigation", "label": "Navigation" },
+        { "value": "pagination", "label": "Pagination" },
+        { "value": "both",       "label": "Both" },
+        { "value": "none",       "label": "None" }
+      ],
+      "default": "navigation",
+      "visible_if": "{{ block.settings.layout_type == 'carousel' }}"
+    },
+    {
+      "type": "select",
+      "id": "nav_border_style",
+      "label": "Border style",
+      "options": [
+        { "value": "none",  "label": "None" },
+        { "value": "solid", "label": "Solid" }
+      ],
+      "default": "none",
+      "visible_if": "{{ block.settings.layout_type == 'carousel' }}"
+    },
+    {
+      "type": "range",
+      "id": "nav_border_width",
+      "label": "Border width",
+      "min": 1, "max": 5, "step": 1, "unit": "px",
+      "default": 1,
+      "visible_if": "{{ block.settings.layout_type == 'carousel' and block.settings.nav_border_style != 'none' }}"
+    },
+    {
+      "type": "range",
+      "id": "nav_border_opacity",
+      "label": "Border opacity",
+      "min": 0, "max": 100, "step": 1, "unit": "%",
+      "default": 100,
+      "visible_if": "{{ block.settings.layout_type == 'carousel' and block.settings.nav_border_style != 'none' }}"
+    },
+    {
+      "type": "range",
+      "id": "nav_border_radius",
+      "label": "Border radius",
+      "min": 0, "max": 30, "step": 1, "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.layout_type == 'carousel' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "nav_inherit_color",
+      "label": "Inherit color",
+      "default": true,
+      "visible_if": "{{ block.settings.layout_type == 'carousel' }}"
+    },
+    {
+      "type": "color_scheme",
+      "id": "nav_color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1",
+      "visible_if": "{{ block.settings.layout_type == 'carousel' and block.settings.nav_inherit_color == false }}"
+    },
+    {
+      "type": "header",
+      "content": "Navigation padding",
+      "visible_if": "{{ block.settings.layout_type == 'carousel' }}"
+    },
+    {
+      "type": "range",
+      "id": "nav_padding_top",
+      "label": "Padding top",
+      "min": 0, "max": 50, "step": 1, "unit": "px",
+      "default": 20,
+      "visible_if": "{{ block.settings.layout_type == 'carousel' }}"
+    },
+    {
+      "type": "range",
+      "id": "nav_padding_bottom",
+      "label": "Padding bottom",
+      "min": 0, "max": 50, "step": 1, "unit": "px",
+      "default": 20,
+      "visible_if": "{{ block.settings.layout_type == 'carousel' }}"
+    },
+    {
+      "type": "range",
+      "id": "nav_padding_left",
+      "label": "Padding left",
+      "min": 0, "max": 50, "step": 1, "unit": "px",
+      "default": 20,
+      "visible_if": "{{ block.settings.layout_type == 'carousel' }}"
+    },
+    {
+      "type": "range",
+      "id": "nav_padding_right",
+      "label": "Padding right",
+      "min": 0, "max": 50, "step": 1, "unit": "px",
+      "default": 20,
+      "visible_if": "{{ block.settings.layout_type == 'carousel' }}"
+    }
+  ],
+  "presets": [
+    { "name": "Testimonial content" }
+  ]
+}
+{% endschema %}

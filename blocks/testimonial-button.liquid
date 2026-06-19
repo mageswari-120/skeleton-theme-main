@@ -1,0 +1,105 @@
+{% doc %}
+  Testimonial button — CTA for the header block.
+
+  @example
+  {% content_for 'block', type: 'testimonial-button', id: 'button' %}
+{% enddoc %}
+
+{%- liquid
+  assign s = block.settings
+  assign link = s.button_link | default: '#'
+  assign label = s.button_label | default: 'Shop Now'
+-%}
+
+<div class="ts-button" {{ block.shopify_attributes }}>
+  <a
+    class="ts-btn ts-btn--{{ s.button_style }}"
+    href="{{ link }}"
+    {%- if s.open_new_tab %} target="_blank" rel="noopener"{%- endif -%}
+  >
+    {{- label -}}
+  </a>
+</div>
+
+{% stylesheet %}
+  .ts-button { display: inline-flex; }
+  .ts-btn {
+    display: inline-block;
+    padding: var(--button-padding-vertical, 14px) var(--button-padding-horizontal, 28px);
+    border: 1px solid transparent;
+    border-radius: var(--button-border-radius, 0);
+    font: inherit;
+    font-size: 0.9rem;
+    line-height: 1;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  }
+  .ts-btn--primary {
+    background:   var(--button-primary-bg);
+    color:        var(--button-primary-color);
+    border-color: var(--button-primary-border, transparent);
+  }
+  .ts-btn--primary:hover {
+    background:   var(--button-primary-hover-bg);
+    color:        var(--button-primary-hover-color);
+  }
+  .ts-btn--secondary {
+    background:   var(--button-outline-bg, transparent);
+    color:        var(--button-outline-color, inherit);
+    border-color: var(--button-outline-border, currentColor);
+  }
+  .ts-btn--secondary:hover {
+    background:   var(--button-outline-hover-bg);
+    color:        var(--button-outline-hover-color);
+  }
+  .ts-btn--link {
+    padding-inline: 0;
+    background: none;
+    border: none;
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+  .ts-btn--link:hover { opacity: 0.75; }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Button",
+  "settings": [
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "Shop Now"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "checkbox",
+      "id": "open_new_tab",
+      "label": "Open link in new tab",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "button_style",
+      "label": "Button style",
+      "options": [
+        { "value": "primary",   "label": "Primary" },
+        { "value": "secondary", "label": "Secondary" },
+        { "value": "link",      "label": "Link" }
+      ],
+      "default": "primary"
+    }
+  ],
+  "presets": [
+    { "name": "Button" }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,302 @@
+{% doc %}
+  Testimonial card — a single testimonial. Renders a static image slot plus
+  any nested content blocks (heading / description / rating / client details).
+
+  @example
+  {% content_for 'block', type: 'testimonial-card', id: 'card' %}
+{% enddoc %}
+
+{%- liquid
+  assign s = block.settings
+  assign border_alpha = s.border_opacity | divided_by: 100.0
+
+  assign card_class = 'ts-card ts-card--' | append: s.card_type
+  if s.card_type == 'grid'
+    assign card_class = card_class | append: ' ts-card--img-' | append: s.image_position
+  endif
+  assign card_class = card_class | append: ' ts-card--align-' | append: s.alignment
+
+  unless s.inherit_color_scheme
+    assign card_class = card_class | append: ' color-' | append: s.color_scheme
+  endunless
+
+  # Build the overlay background (solid colour or gradient)
+  assign overlay_bg = ''
+  if s.enable_overlay and s.overlay_color != blank
+    if s.overlay_style == 'gradient'
+      if s.overlay_direction == 'bottom_top'
+        assign overlay_bg = 'linear-gradient(to top, ' | append: s.overlay_color | append: ', transparent)'
+      else
+        assign overlay_bg = 'linear-gradient(to bottom, ' | append: s.overlay_color | append: ', transparent)'
+      endif
+    else
+      assign overlay_bg = s.overlay_color
+    endif
+  endif
+-%}
+
+<div
+  class="{{ card_class }}"
+  role="listitem"
+  style="
+    --ts-card-gap: {{ s.gap }}px;
+    --ts-card-radius: {{ s.border_radius }}px;
+    --ts-card-pt: {{ s.padding_top }}px;
+    --ts-card-pb: {{ s.padding_bottom }}px;
+    --ts-card-pl: {{ s.padding_left }}px;
+    --ts-card-pr: {{ s.padding_right }}px;
+    {%- if overlay_bg != blank -%}--ts-card-overlay: {{ overlay_bg }};{%- endif -%}
+    {%- if s.border_style != 'none' -%}--ts-card-border: {{ s.border_width }}px solid rgba(0,0,0,{{ border_alpha }});{%- endif -%}
+  "
+  {{ block.shopify_attributes }}
+>
+  <div class="ts-card__media">
+    {% content_for 'block', type: 'testimonial-image', id: 'image' %}
+    {%- if overlay_bg != blank -%}
+      <div class="ts-card__overlay" aria-hidden="true"></div>
+    {%- endif -%}
+  </div>
+
+  <div class="ts-card__body">
+    {% content_for 'blocks' %}
+  </div>
+</div>
+
+{% stylesheet %}
+  .ts-card {
+    position: relative;
+    display: flex;
+    height: 100%;
+    border: var(--ts-card-border, none);
+    border-radius: var(--ts-card-radius, 0);
+    overflow: hidden;
+    background: var(--color-background, transparent);
+    color: var(--color-foreground, inherit);
+  }
+  .ts-card__media { position: relative; }
+  .ts-card__media:empty { display: none; }
+  .ts-card__overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--ts-card-overlay, transparent);
+    pointer-events: none;
+  }
+  .ts-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ts-card-gap, 10px);
+    padding: var(--ts-card-pt, 20px) var(--ts-card-pr, 20px) var(--ts-card-pb, 20px) var(--ts-card-pl, 20px);
+    flex: 1;
+  }
+
+  /* Alignment of the body content */
+  .ts-card--align-left   .ts-card__body { align-items: flex-start; text-align: left; }
+  .ts-card--align-center .ts-card__body { align-items: center;     text-align: center; }
+  .ts-card--align-right  .ts-card__body { align-items: flex-end;   text-align: right; }
+
+  /* ── Grid layout — image position drives flex direction ── */
+  .ts-card--grid { flex-direction: column; }
+  .ts-card--grid.ts-card--img-top    { flex-direction: column; }
+  .ts-card--grid.ts-card--img-bottom { flex-direction: column-reverse; }
+  .ts-card--grid.ts-card--img-left   { flex-direction: row; }
+  .ts-card--grid.ts-card--img-right  { flex-direction: row-reverse; }
+  .ts-card--grid.ts-card--img-left  .ts-card__media,
+  .ts-card--grid.ts-card--img-right .ts-card__media { flex: 0 0 auto; }
+  .ts-card--grid.ts-card--img-left  .ts-card__body,
+  .ts-card--grid.ts-card--img-right .ts-card__body { justify-content: center; }
+
+  /* ── Overlay layout — body sits on top of the image ── */
+  .ts-card--overlay { flex-direction: column; }
+  .ts-card--overlay .ts-card__media { position: absolute; inset: 0; z-index: 0; }
+  .ts-card--overlay .ts-card__media .image,
+  .ts-card--overlay .ts-card__media img { height: 100%; object-fit: cover; }
+  .ts-card--overlay .ts-card__body {
+    position: relative;
+    z-index: 1;
+    justify-content: flex-end;
+    min-height: 320px;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Testimonial card",
+  "blocks": [
+    { "type": "testimonial-image" },
+    { "type": "testimonial-heading" },
+    { "type": "testimonial-text" },
+    { "type": "testimonial-rating" },
+    { "type": "testimonial-client" }
+  ],
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "card_type",
+      "label": "Type",
+      "options": [
+        { "value": "grid",    "label": "Grid" },
+        { "value": "overlay", "label": "Overlay" }
+      ],
+      "default": "grid"
+    },
+    {
+      "type": "select",
+      "id": "image_position",
+      "label": "Image position",
+      "options": [
+        { "value": "top",    "label": "Top" },
+        { "value": "bottom", "label": "Bottom" },
+        { "value": "left",   "label": "Left" },
+        { "value": "right",  "label": "Right" }
+      ],
+      "default": "top",
+      "visible_if": "{{ block.settings.card_type == 'grid' }}"
+    },
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "Alignment",
+      "options": [
+        { "value": "left",   "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right",  "label": "Right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "Gap",
+      "min": 0, "max": 50, "step": 1, "unit": "px",
+      "default": 10
+    },
+    {
+      "type": "header",
+      "content": "Appearance"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_overlay",
+      "label": "Enable overlay",
+      "default": false
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "Overlay color",
+      "visible_if": "{{ block.settings.enable_overlay }}"
+    },
+    {
+      "type": "select",
+      "id": "overlay_style",
+      "label": "Overlay style",
+      "options": [
+        { "value": "solid",    "label": "Solid" },
+        { "value": "gradient", "label": "Gradient" }
+      ],
+      "default": "solid",
+      "visible_if": "{{ block.settings.enable_overlay }}"
+    },
+    {
+      "type": "select",
+      "id": "overlay_direction",
+      "label": "Overlay direction",
+      "options": [
+        { "value": "top_bottom", "label": "Top → Bottom" },
+        { "value": "bottom_top", "label": "Bottom → Top" }
+      ],
+      "default": "top_bottom",
+      "visible_if": "{{ block.settings.enable_overlay and block.settings.overlay_style == 'gradient' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "inherit_color_scheme",
+      "label": "Inherit color scheme",
+      "default": true
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1",
+      "visible_if": "{{ block.settings.inherit_color_scheme == false }}"
+    },
+    {
+      "type": "header",
+      "content": "Border"
+    },
+    {
+      "type": "select",
+      "id": "border_style",
+      "label": "Border style",
+      "options": [
+        { "value": "none",  "label": "None" },
+        { "value": "solid", "label": "Solid" }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "range",
+      "id": "border_width",
+      "label": "Border width",
+      "min": 1, "max": 5, "step": 1, "unit": "px",
+      "default": 1,
+      "visible_if": "{{ block.settings.border_style != 'none' }}"
+    },
+    {
+      "type": "range",
+      "id": "border_opacity",
+      "label": "Border opacity",
+      "min": 0, "max": 100, "step": 1, "unit": "%",
+      "default": 100,
+      "visible_if": "{{ block.settings.border_style != 'none' }}"
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "label": "Border radius",
+      "min": 0, "max": 30, "step": 1, "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0, "max": 50, "step": 1, "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0, "max": 50, "step": 1, "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "label": "Padding left",
+      "min": 0, "max": 50, "step": 1, "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "label": "Padding right",
+      "min": 0, "max": 50, "step": 1, "unit": "px",
+      "default": 20
+    }
+  ],
+  "presets": [
+    { "name": "Testimonial card" }
+  ]
+}
+{% endschema %}

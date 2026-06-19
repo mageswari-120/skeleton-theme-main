@@ -1,0 +1,171 @@
+{% doc %}
+  Testimonial client details — avatar image, name and profession with a
+  configurable layout, aspect ratio, gap and padding.
+
+  @example
+  {% content_for 'block', type: 'testimonial-client', id: 'client' %}
+{% enddoc %}
+
+{%- liquid
+  assign s = block.settings
+  assign img = s.image
+-%}
+
+<div
+  class="ts-client ts-client--{{ s.image_position }}"
+  style="
+    --ts-client-gap: {{ s.gap }}px;
+    --ts-client-pt: {{ s.padding_top }}px;
+    --ts-client-pb: {{ s.padding_bottom }}px;
+    --ts-client-pl: {{ s.padding_left }}px;
+    --ts-client-pr: {{ s.padding_right }}px;
+  "
+  {{ block.shopify_attributes }}
+>
+  {%- if img != blank -%}
+    <div class="ts-client__avatar ts-client__avatar--{{ s.aspect_ratio }}">
+      {{ img
+        | image_url: width: 200
+        | image_tag:
+          loading: 'lazy',
+          widths: '60,90,120,160,200',
+          sizes: '60px',
+          class: 'ts-client__img',
+          alt: s.name | default: img.alt | escape
+      }}
+    </div>
+  {%- endif -%}
+
+  <div class="ts-client__meta">
+    {%- if s.name != blank -%}
+      <span class="ts-client__name">{{ s.name }}</span>
+    {%- endif -%}
+    {%- if s.profession != blank -%}
+      <span class="ts-client__profession">{{ s.profession }}</span>
+    {%- endif -%}
+  </div>
+</div>
+
+{% stylesheet %}
+  .ts-client {
+    display: flex;
+    align-items: center;
+    gap: var(--ts-client-gap, 10px);
+    padding: var(--ts-client-pt, 0) var(--ts-client-pr, 0) var(--ts-client-pb, 0) var(--ts-client-pl, 0);
+  }
+  .ts-client--top {
+    flex-direction: column;
+    text-align: center;
+  }
+  .ts-client--left { flex-direction: row; }
+
+  .ts-client__avatar {
+    flex: 0 0 auto;
+    width: 56px;
+    overflow: hidden;
+  }
+  .ts-client__img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+  .ts-client__avatar--square   { aspect-ratio: 1 / 1; }
+  .ts-client__avatar--portrait { aspect-ratio: 3 / 4; }
+  .ts-client__avatar--adapt    { aspect-ratio: auto; }
+  .ts-client__avatar--circle   { aspect-ratio: 1 / 1; border-radius: 50%; }
+
+  .ts-client__meta { display: flex; flex-direction: column; gap: 2px; }
+  .ts-client__name { font-weight: 600; }
+  .ts-client__profession { font-size: 0.85em; opacity: 0.7; }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Client details",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "name",
+      "label": "Name",
+      "default": "John"
+    },
+    {
+      "type": "text",
+      "id": "profession",
+      "label": "Profession",
+      "default": "Director"
+    },
+    {
+      "type": "select",
+      "id": "image_position",
+      "label": "Image position",
+      "options": [
+        { "value": "top",  "label": "Top" },
+        { "value": "left", "label": "Left" }
+      ],
+      "default": "top"
+    },
+    {
+      "type": "select",
+      "id": "aspect_ratio",
+      "label": "Aspect ratio",
+      "options": [
+        { "value": "square",   "label": "Square" },
+        { "value": "portrait", "label": "Portrait" },
+        { "value": "adapt",    "label": "Adapt" },
+        { "value": "circle",   "label": "Circle" }
+      ],
+      "default": "circle"
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "Gap",
+      "min": 0, "max": 30, "step": 1, "unit": "px",
+      "default": 10
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0, "max": 50, "step": 1, "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0, "max": 50, "step": 1, "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "label": "Padding left",
+      "min": 0, "max": 50, "step": 1, "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "label": "Padding right",
+      "min": 0, "max": 50, "step": 1, "unit": "px",
+      "default": 0
+    }
+  ],
+  "presets": [
+    { "name": "Client details" }
+  ]
+}
+{% endschema %}

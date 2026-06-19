@@ -1,0 +1,87 @@
+{% doc %}
+  Testimonial text / description. Used for the header sub-copy and for the
+  testimonial quote inside a card.
+
+  @example
+  {% content_for 'block', type: 'testimonial-text', id: 'text' %}
+{% enddoc %}
+
+{%- liquid
+  assign s = block.settings
+-%}
+
+<div
+  class="ts-text ts-text--{{ s.alignment }}"
+  style="
+    --ts-text-pt: {{ s.padding_top }}px;
+    --ts-text-pb: {{ s.padding_bottom }}px;
+    {%- if s.color != blank -%}--ts-text-color: {{ s.color }};{%- endif -%}
+  "
+  {{ block.shopify_attributes }}
+>
+  {{- s.text -}}
+</div>
+
+{% stylesheet %}
+  .ts-text {
+    padding-top: var(--ts-text-pt, 0);
+    padding-bottom: var(--ts-text-pb, 0);
+    color: var(--ts-text-color, inherit);
+  }
+  .ts-text > * { margin: 0; }
+  .ts-text > * + * { margin-top: 0.5em; }
+  .ts-text--left   { text-align: left; }
+  .ts-text--center { text-align: center; }
+  .ts-text--right  { text-align: right; }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Description",
+  "settings": [
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Text",
+      "default": "<p>What our customers tell about us</p>"
+    },
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "Alignment",
+      "options": [
+        { "value": "left",   "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right",  "label": "Right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "color",
+      "id": "color",
+      "label": "Text color"
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0, "max": 50, "step": 1, "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0, "max": 50, "step": 1, "unit": "px",
+      "default": 0
+    }
+  ],
+  "presets": [
+    { "name": "Description" }
+  ]
+}
+{% endschema %}

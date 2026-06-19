@@ -1,0 +1,83 @@
+{% doc %}
+  Testimonial header — wraps heading / description / button blocks.
+
+  @example
+  {% content_for 'block', type: 'testimonial-header', id: 'header' %}
+{% enddoc %}
+
+{%- liquid
+  assign s = block.settings
+-%}
+
+<div
+  class="ts-header ts-header--{{ s.alignment }}"
+  style="--ts-header-gap: {{ s.gap }}px; --ts-header-pt: {{ s.padding_top }}px; --ts-header-pb: {{ s.padding_bottom }}px;"
+  {{ block.shopify_attributes }}
+>
+  {% content_for 'blocks' %}
+</div>
+
+{% stylesheet %}
+  .ts-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ts-header-gap, 8px);
+    padding-top: var(--ts-header-pt, 0);
+    padding-bottom: var(--ts-header-pb, 24px);
+  }
+  .ts-header--left   { align-items: flex-start; text-align: left; }
+  .ts-header--center { align-items: center;     text-align: center; }
+  .ts-header--right  { align-items: flex-end;   text-align: right; }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Header block",
+  "blocks": [
+    { "type": "testimonial-heading" },
+    { "type": "testimonial-text" },
+    { "type": "testimonial-button" }
+  ],
+  "settings": [
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "Alignment",
+      "options": [
+        { "value": "left",   "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right",  "label": "Right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "Gap",
+      "min": 0, "max": 50, "step": 1, "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0, "max": 50, "step": 1, "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0, "max": 50, "step": 1, "unit": "px",
+      "default": 24
+    }
+  ],
+  "presets": [
+    { "name": "Header block" }
+  ]
+}
+{% endschema %}

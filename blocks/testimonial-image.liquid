@@ -1,0 +1,100 @@
+{% doc %}
+  Testimonial image — the static image slot inside a testimonial card.
+  Rendered via {% content_for 'block', type: 'testimonial-image', id: 'image' %}
+  so it is a fixed, non-removable slot.
+{% enddoc %}
+
+{%- liquid
+  assign s = block.settings
+  assign img = s.image
+-%}
+
+<div
+  class="ts-image ts-image--ratio-{{ s.aspect_ratio }} ts-image--fit-{{ s.image_fit }}"
+  style="--ts-image-radius: {{ s.border_radius }}px;"
+  {{ block.shopify_attributes }}
+>
+  <div class="ts-image__media">
+    {%- if img != blank -%}
+      {{ img
+        | image_url: width: 1200
+        | image_tag:
+          loading: 'lazy',
+          widths: '200,300,400,600,800,1000,1200',
+          sizes: '(min-width: 750px) 33vw, 100vw',
+          class: 'ts-image__img',
+          alt: img.alt | default: 'Testimonial image' | escape
+      }}
+    {%- else -%}
+      {{ 'image' | placeholder_svg_tag: 'ts-image__placeholder' }}
+    {%- endif -%}
+  </div>
+</div>
+
+{% stylesheet %}
+  .ts-image { width: 100%; }
+  .ts-image__media {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--ts-image-radius, 0);
+    width: 100%;
+  }
+  .ts-image__img,
+  .ts-image__placeholder {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+  .ts-image--fit-contain .ts-image__img { object-fit: contain; }
+
+  .ts-image--ratio-square   .ts-image__media { aspect-ratio: 1 / 1; }
+  .ts-image--ratio-portrait .ts-image__media { aspect-ratio: 3 / 4; }
+  .ts-image--ratio-landscape .ts-image__media { aspect-ratio: 4 / 3; }
+  .ts-image--ratio-circle   .ts-image__media { aspect-ratio: 1 / 1; border-radius: 50%; }
+  .ts-image--ratio-adapt    .ts-image__media { aspect-ratio: auto; }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Image",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "select",
+      "id": "aspect_ratio",
+      "label": "Aspect ratio",
+      "options": [
+        { "value": "adapt",     "label": "Adapt to image" },
+        { "value": "square",    "label": "Square (1:1)" },
+        { "value": "portrait",  "label": "Portrait (3:4)" },
+        { "value": "landscape", "label": "Landscape (4:3)" },
+        { "value": "circle",    "label": "Circle" }
+      ],
+      "default": "landscape"
+    },
+    {
+      "type": "select",
+      "id": "image_fit",
+      "label": "Image fit",
+      "options": [
+        { "value": "cover",   "label": "Cover" },
+        { "value": "contain", "label": "Contain" }
+      ],
+      "default": "cover"
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "label": "Border radius",
+      "min": 0, "max": 50, "step": 1, "unit": "px",
+      "default": 0
+    }
+  ]
+}
+{% endschema %}

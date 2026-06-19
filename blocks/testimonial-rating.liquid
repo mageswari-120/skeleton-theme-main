@@ -1,0 +1,155 @@
+{% doc %}
+  Testimonial custom rating — renders 5 stars filled to the chosen rating
+  (supports half steps). Star colour, gap and padding are configurable.
+
+  @example
+  {% content_for 'block', type: 'testimonial-rating', id: 'rating' %}
+{% enddoc %}
+
+{%- liquid
+  assign s = block.settings
+  assign rating_x10 = s.rating | times: 10 | round
+-%}
+
+<div
+  class="ts-rating"
+  style="
+    --ts-rating-color: {{ s.rating_color }};
+    --ts-rating-gap: {{ s.gap }}px;
+    --ts-rating-size: {{ s.star_size }}px;
+    --ts-rating-pt: {{ s.padding_top }}px;
+    --ts-rating-pb: {{ s.padding_bottom }}px;
+    --ts-rating-pl: {{ s.padding_left }}px;
+    --ts-rating-pr: {{ s.padding_right }}px;
+  "
+  role="img"
+  aria-label="Rated {{ s.rating }} out of 5"
+  {{ block.shopify_attributes }}
+>
+  {%- for i in (1..5) -%}
+    {%- liquid
+      assign lower = i | minus: 1 | times: 10
+      assign diff = rating_x10 | minus: lower
+      if diff <= 0
+        assign pct = 0
+      elsif diff >= 10
+        assign pct = 100
+      else
+        assign pct = diff | times: 10
+      endif
+    -%}
+    <span class="ts-star" style="--fill: {{ pct }}%;">
+      <svg class="ts-star__bg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 18.4 6.1 21l1.2-6.5L2.5 9.9l6.6-.9z"/>
+      </svg>
+      <svg class="ts-star__fg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 18.4 6.1 21l1.2-6.5L2.5 9.9l6.6-.9z"/>
+      </svg>
+    </span>
+  {%- endfor -%}
+</div>
+
+{% stylesheet %}
+  .ts-rating {
+    display: inline-flex;
+    gap: var(--ts-rating-gap, 10px);
+    color: var(--ts-rating-color, #000);
+    padding: var(--ts-rating-pt, 0) var(--ts-rating-pr, 0) var(--ts-rating-pb, 0) var(--ts-rating-pl, 0);
+  }
+  .ts-star {
+    position: relative;
+    display: inline-block;
+    width: var(--ts-rating-size, 18px);
+    height: var(--ts-rating-size, 18px);
+    line-height: 0;
+  }
+  .ts-star__bg,
+  .ts-star__fg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .ts-star__bg { opacity: 0.35; }
+  .ts-star__fg { clip-path: inset(0 calc(100% - var(--fill, 0%)) 0 0); }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Custom rating",
+  "settings": [
+    {
+      "type": "select",
+      "id": "rating",
+      "label": "Rating count",
+      "options": [
+        { "value": "1",   "label": "1" },
+        { "value": "1.5", "label": "1.5" },
+        { "value": "2",   "label": "2" },
+        { "value": "2.5", "label": "2.5" },
+        { "value": "3",   "label": "3" },
+        { "value": "3.5", "label": "3.5" },
+        { "value": "4",   "label": "4" },
+        { "value": "4.5", "label": "4.5" },
+        { "value": "5",   "label": "5" }
+      ],
+      "default": "5"
+    },
+    {
+      "type": "color",
+      "id": "rating_color",
+      "label": "Rating color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "star_size",
+      "label": "Star size",
+      "min": 10, "max": 40, "step": 1, "unit": "px",
+      "default": 18
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "Gap",
+      "min": 0, "max": 30, "step": 1, "unit": "px",
+      "default": 10
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0, "max": 50, "step": 1, "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0, "max": 50, "step": 1, "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "label": "Padding left",
+      "min": 0, "max": 50, "step": 1, "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "label": "Padding right",
+      "min": 0, "max": 50, "step": 1, "unit": "px",
+      "default": 0
+    }
+  ],
+  "presets": [
+    { "name": "Custom rating" }
+  ]
+}
+{% endschema %}

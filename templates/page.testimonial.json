@@ -1,0 +1,174 @@
+{
+  "sections": {
+    "main": {
+      "type": "page",
+      "settings": {}
+    },
+    "testimonial": {
+      "type": "testimonial",
+      "blocks": {
+        "header": {
+          "type": "testimonial-header",
+          "blocks": {
+            "heading": {
+              "type": "testimonial-heading",
+              "settings": {
+                "heading": "Client Says",
+                "heading_size": "h2",
+                "alignment": "center"
+              } 
+            },
+            "desc": {
+              "type": "testimonial-text",
+              "settings": {
+                "text": "<p>What our happy customers tell about us</p>",
+                "alignment": "center"
+              }
+            }
+          },
+          "block_order": ["heading", "desc"],
+          "settings": {
+            "alignment": "center",
+            "gap": 8,
+            "padding_bottom": 24
+          }
+        },
+        "content": {
+          "type": "testimonial-content",
+          "blocks": {
+            "card1": {
+              "type": "testimonial-card",
+              "blocks": {
+                "image": {
+                  "type": "testimonial-image",
+                  "static": true,
+                  "settings": {
+                    "aspect_ratio": "landscape"
+                  }
+                },
+                "text": {
+                  "type": "testimonial-text",
+                  "settings": {
+                    "text": "<p>The fabric quality exceeded my expectations. The outfit looked exactly like the pictures.</p>",
+                    "alignment": "center"
+                  }
+                },
+                "rating": {
+                  "type": "testimonial-rating",
+                  "settings": { "rating": "5" }
+                },
+                "client": {
+                  "type": "testimonial-client",
+                  "settings": {
+                    "name": "Priya Sharma",
+                    "profession": "Verified buyer"
+                  }
+                }
+              },
+              "block_order": ["text", "rating", "client"],
+              "settings": {
+                "card_type": "grid",
+                "image_position": "top",
+                "alignment": "center",
+                "gap": 12
+              }
+            },
+            "card2": {
+              "type": "testimonial-card",
+              "blocks": {
+                "image": {
+                  "type": "testimonial-image",
+                  "static": true,
+                  "settings": {
+                    "aspect_ratio": "landscape"
+                  }
+                },
+                "text": {
+                  "type": "testimonial-text",
+                  "settings": {
+                    "text": "<p>Shopping online has often been overwhelming. But this was exciting and precious.</p>",
+                    "alignment": "center"
+                  }
+                },
+                "rating": {
+                  "type": "testimonial-rating",
+                  "settings": { "rating": "5" }
+                },
+                "client": {
+                  "type": "testimonial-client",
+                  "settings": {
+                    "name": "Aarav Dani",
+                    "profession": "Verified buyer"
+                  }
+                }
+              },
+              "block_order": ["text", "rating", "client"],
+              "settings": {
+                "card_type": "grid",
+                "image_position": "top",
+                "alignment": "center",
+                "gap": 12
+              }
+            },
+            "card3": {
+              "type": "testimonial-card",
+              "blocks": {
+                "image": {
+                  "type": "testimonial-image",
+                  "static": true,
+                  "settings": {
+                    "aspect_ratio": "landscape"
+                  }
+                },
+                "text": {
+                  "type": "testimonial-text",
+                  "settings": {
+                    "text": "<p>Excellent fit and finish. I was absolutely delighted with the purchase.</p>",
+                    "alignment": "center"
+                  }
+                },
+                "rating": {
+                  "type": "testimonial-rating",
+                  "settings": { "rating": "4.5" }
+                },
+                "client": {
+                  "type": "testimonial-client",
+                  "settings": {
+                    "name": "Meera Patel",
+                    "profession": "Verified buyer"
+                  }
+                }
+              },
+              "block_order": ["text", "rating", "client"],
+              "settings": {
+                "card_type": "grid",
+                "image_position": "top",
+                "alignment": "center",
+                "gap": 12
+              }
+            }
+          },
+          "block_order": ["card1", "card2", "card3"],
+          "settings": {
+            "layout_type": "carousel",
+            "columns_desktop": "3",
+            "columns_mobile": "1",
+            "column_gap": 20,
+            "autoplay_seconds": 0,
+            "loop": true,
+            "nav_style": "navigation"
+          }
+        }
+      },
+      "block_order": ["header", "content"],
+      "settings": {
+        "enable_container": true,
+        "width": "full",
+        "color_scheme": "scheme-1",
+        "padding_top": 40,
+        "padding_bottom": 40
+      }
+    }
+  },
+  "order": ["main", "testimonial"]
+}
