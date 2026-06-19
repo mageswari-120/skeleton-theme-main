@@ -19,61 +19,561 @@
         "cl-img": {
           "type": "collection-image",
           "static": true,
-          "settings": {}
+          "settings": {
+            "image_source": "collection",
+            "image_ratio": "adapt",
+            "image_fit": "cover",
+            "transparent_bg": false,
+            "media_overlay": false,
+            "overlay": 2,
+            "border_style": "none",
+            "border_width": 1,
+            "border_opacity": 100,
+            "border_radius": 0
+          },
+          "blocks": {}
         },
         "cl-title": {
           "type": "collection-title",
           "static": true,
           "settings": {
-            "show_product_count": true
-          }
+            "heading": "",
+            "heading_size": "h4",
+            "text_case": "default",
+            "show_product_count": true,
+            "padding_top": 8,
+            "padding_bottom": 0
+          },
+          "blocks": {}
         },
         "cl-desc": {
           "type": "collection-description",
           "static": true,
-          "settings": {}
+          "settings": {
+            "text_case": "default",
+            "padding_top": 4,
+            "padding_bottom": 0
+          },
+          "blocks": {}
         },
         "cl-text": {
           "type": "collection-text",
           "static": true,
-          "settings": {}
+          "settings": {
+            "text": "Text",
+            "display_style": "heading",
+            "badge_background": "",
+            "heading_size": "h5",
+            "text_case": "default",
+            "border_style": "none",
+            "border_width": 1,
+            "border_opacity": 100,
+            "border_radius": 0,
+            "padding_top": 0,
+            "padding_bottom": 0
+          },
+          "blocks": {}
         },
         "cl-btn": {
           "type": "collection-button",
           "static": true,
-          "settings": {}
+          "settings": {
+            "button_label": "Shop Now",
+            "button_link": "",
+            "open_new_tab": false,
+            "button_style": "primary",
+            "show_label": true,
+            "arrow_button": true,
+            "arrow_style": "filled-circle",
+            "arrow_size": 32,
+            "align": "auto",
+            "pin_bottom": false
+          },
+          "blocks": {}
         }
       },
-      "block_order": [],
       "settings": {
         "collections": [],
         "enable_container": true,
         "width": "full",
         "color_scheme": "scheme-1",
+        "padding_top": 50,
+        "padding_bottom": 50,
         "layout_type": "grid",
         "columns_desktop": 5,
         "columns_mobile": "2",
         "column_gap": 20,
         "row_gap": 20,
-        "padding_top": 50,
-        "padding_bottom": 50,
+        "carousel_nav": "navigation",
+        "carousel_border_style": "none",
+        "carousel_border_width": 1,
+        "carousel_border_opacity": 100,
+        "carousel_border_radius": 50,
+        "carousel_inherit_scheme": true,
+        "carousel_color_scheme": "",
         "card_image_shape": "arch",
+        "card_custom_radius": 16,
         "card_arch_height": 300,
+        "card_arch_width": 250,
         "card_image_position": "center",
         "card_overlay_style": "below-image",
         "card_content_alignment": "center",
         "card_content_position": "bottom",
         "card_border_style": "none",
+        "card_border_width": 1,
+        "card_border_opacity": 100,
         "card_border_radius": 0,
         "card_padding_top": 0,
         "card_padding_bottom": 0,
         "card_padding_left": 0,
         "card_padding_right": 0
       }
+    },
+    "testimonial_wMeTgj": {
+      "type": "testimonial",
+      "blocks": {
+        "testimonial_content_q3ndKw": {
+          "type": "testimonial-content",
+          "name": "Testimonial content",
+          "settings": {
+            "layout_type": "carousel",
+            "column_gap": 20,
+            "row_gap": 20,
+            "columns_desktop": "3",
+            "columns_mobile": "1",
+            "autoplay_seconds": 0,
+            "loop": true,
+            "nav_style": "navigation",
+            "nav_border_style": "none",
+            "nav_border_width": 1,
+            "nav_border_opacity": 100,
+            "nav_border_radius": 0,
+            "nav_inherit_color": true,
+            "nav_color_scheme": "",
+            "nav_padding_top": 20,
+            "nav_padding_bottom": 20,
+            "nav_padding_left": 20,
+            "nav_padding_right": 20
+          },
+          "blocks": {
+            "testimonial_card_Eyb64x": {
+              "type": "testimonial-card",
+              "name": "Testimonial card",
+              "settings": {
+                "card_type": "grid",
+                "image_position": "top",
+                "alignment": "center",
+                "gap": 10,
+                "enable_overlay": false,
+                "overlay_color": "#CE5E5E",
+                "overlay_style": "gradient",
+                "overlay_direction": "top_bottom",
+                "inherit_color_scheme": false,
+                "color_scheme": "",
+                "border_style": "none",
+                "border_width": 1,
+                "border_opacity": 100,
+                "border_radius": 0,
+                "padding_top": 20,
+                "padding_bottom": 20,
+                "padding_left": 20,
+                "padding_right": 20
+              },
+              "blocks": {
+                "testimonial_heading_dBYnGe": {
+                  "type": "testimonial-heading",
+                  "name": "Heading",
+                  "settings": {
+                    "heading": "Client Says",
+                    "heading_size": "h2",
+                    "alignment": "center",
+                    "color": "",
+                    "padding_top": 0,
+                    "padding_bottom": 0
+                  },
+                  "blocks": {}
+                },
+                "testimonial_rating_EXBWE3": {
+                  "type": "testimonial-rating",
+                  "name": "Custom rating",
+                  "settings": {
+                    "rating": "5",
+                    "rating_color": "#000000",
+                    "star_size": 18,
+                    "gap": 10,
+                    "padding_top": 0,
+                    "padding_bottom": 0,
+                    "padding_left": 0,
+                    "padding_right": 0
+                  },
+                  "blocks": {}
+                },
+                "testimonial_text_xYHRAE": {
+                  "type": "testimonial-text",
+                  "name": "Description",
+                  "settings": {
+                    "text": "<p>What our customers tell about us</p>",
+                    "alignment": "center",
+                    "color": "",
+                    "padding_top": 0,
+                    "padding_bottom": 0
+                  },
+                  "blocks": {}
+                },
+                "testimonial_client_diRnkG": {
+                  "type": "testimonial-client",
+                  "name": "Client details",
+                  "settings": {
+                    "name": "John",
+                    "profession": "Director",
+                    "image_position": "top",
+                    "aspect_ratio": "circle",
+                    "gap": 10,
+                    "padding_top": 0,
+                    "padding_bottom": 0,
+                    "padding_left": 0,
+                    "padding_right": 0
+                  },
+                  "blocks": {}
+                },
+                "image": {
+                  "type": "testimonial-image",
+                  "static": true,
+                  "settings": {
+                    "image": "shopify://shop_images/Rectangle_g_copy_1.jpg",
+                    "aspect_ratio": "landscape",
+                    "image_fit": "cover",
+                    "border_radius": 0
+                  },
+                  "blocks": {}
+                }
+              },
+              "block_order": [
+                "testimonial_heading_dBYnGe",
+                "testimonial_rating_EXBWE3",
+                "testimonial_text_xYHRAE",
+                "testimonial_client_diRnkG"
+              ]
+            },
+            "testimonial_card_gVcUPd": {
+              "type": "testimonial-card",
+              "name": "Testimonial card",
+              "settings": {
+                "card_type": "grid",
+                "image_position": "top",
+                "alignment": "center",
+                "gap": 10,
+                "enable_overlay": false,
+                "overlay_color": "",
+                "overlay_style": "solid",
+                "overlay_direction": "top_bottom",
+                "inherit_color_scheme": true,
+                "color_scheme": "",
+                "border_style": "none",
+                "border_width": 1,
+                "border_opacity": 100,
+                "border_radius": 0,
+                "padding_top": 20,
+                "padding_bottom": 20,
+                "padding_left": 20,
+                "padding_right": 20
+              },
+              "blocks": {
+                "testimonial_heading_CRtchi": {
+                  "type": "testimonial-heading",
+                  "name": "Heading",
+                  "settings": {
+                    "heading": "Client Says",
+                    "heading_size": "h2",
+                    "alignment": "center",
+                    "color": "",
+                    "padding_top": 0,
+                    "padding_bottom": 0
+                  },
+                  "blocks": {}
+                },
+                "testimonial_rating_YKh6En": {
+                  "type": "testimonial-rating",
+                  "name": "Custom rating",
+                  "settings": {
+                    "rating": "5",
+                    "rating_color": "#000000",
+                    "star_size": 18,
+                    "gap": 10,
+                    "padding_top": 0,
+                    "padding_bottom": 0,
+                    "padding_left": 0,
+                    "padding_right": 0
+                  },
+                  "blocks": {}
+                },
+                "testimonial_text_byXUQc": {
+                  "type": "testimonial-text",
+                  "name": "Description",
+                  "settings": {
+                    "text": "<p>What our customers tell about us</p>",
+                    "alignment": "center",
+                    "color": "",
+                    "padding_top": 0,
+                    "padding_bottom": 0
+                  },
+                  "blocks": {}
+                },
+                "testimonial_client_wRatpg": {
+                  "type": "testimonial-client",
+                  "name": "Client details",
+                  "settings": {
+                    "name": "John",
+                    "profession": "Director",
+                    "image_position": "top",
+                    "aspect_ratio": "circle",
+                    "gap": 10,
+                    "padding_top": 0,
+                    "padding_bottom": 0,
+                    "padding_left": 0,
+                    "padding_right": 0
+                  },
+                  "blocks": {}
+                },
+                "image": {
+                  "type": "testimonial-image",
+                  "static": true,
+                  "settings": {
+                    "aspect_ratio": "landscape",
+                    "image_fit": "cover",
+                    "border_radius": 0
+                  },
+                  "blocks": {}
+                }
+              },
+              "block_order": [
+                "testimonial_heading_CRtchi",
+                "testimonial_rating_YKh6En",
+                "testimonial_text_byXUQc",
+                "testimonial_client_wRatpg"
+              ]
+            },
+            "testimonial_card_VrAeQn": {
+              "type": "testimonial-card",
+              "name": "Testimonial card",
+              "settings": {
+                "card_type": "grid",
+                "image_position": "top",
+                "alignment": "center",
+                "gap": 10,
+                "enable_overlay": false,
+                "overlay_color": "",
+                "overlay_style": "solid",
+                "overlay_direction": "top_bottom",
+                "inherit_color_scheme": true,
+                "color_scheme": "",
+                "border_style": "none",
+                "border_width": 1,
+                "border_opacity": 100,
+                "border_radius": 0,
+                "padding_top": 20,
+                "padding_bottom": 20,
+                "padding_left": 20,
+                "padding_right": 20
+              },
+              "blocks": {
+                "testimonial_heading_wVJwRb": {
+                  "type": "testimonial-heading",
+                  "name": "Heading",
+                  "settings": {
+                    "heading": "Client Says",
+                    "heading_size": "h2",
+                    "alignment": "center",
+                    "color": "",
+                    "padding_top": 0,
+                    "padding_bottom": 0
+                  },
+                  "blocks": {}
+                },
+                "testimonial_rating_VG4D3b": {
+                  "type": "testimonial-rating",
+                  "name": "Custom rating",
+                  "settings": {
+                    "rating": "5",
+                    "rating_color": "#000000",
+                    "star_size": 18,
+                    "gap": 10,
+                    "padding_top": 0,
+                    "padding_bottom": 0,
+                    "padding_left": 0,
+                    "padding_right": 0
+                  },
+                  "blocks": {}
+                },
+                "testimonial_text_kDj849": {
+                  "type": "testimonial-text",
+                  "name": "Description",
+                  "settings": {
+                    "text": "<p>What our customers tell about us</p>",
+                    "alignment": "center",
+                    "color": "",
+                    "padding_top": 0,
+                    "padding_bottom": 0
+                  },
+                  "blocks": {}
+                },
+                "testimonial_client_XMQRNx": {
+                  "type": "testimonial-client",
+                  "name": "Client details",
+                  "settings": {
+                    "name": "John",
+                    "profession": "Director",
+                    "image_position": "top",
+                    "aspect_ratio": "circle",
+                    "gap": 10,
+                    "padding_top": 0,
+                    "padding_bottom": 0,
+                    "padding_left": 0,
+                    "padding_right": 0
+                  },
+                  "blocks": {}
+                },
+                "image": {
+                  "type": "testimonial-image",
+                  "static": true,
+                  "settings": {
+                    "aspect_ratio": "landscape",
+                    "image_fit": "cover",
+                    "border_radius": 0
+                  },
+                  "blocks": {}
+                }
+              },
+              "block_order": [
+                "testimonial_heading_wVJwRb",
+                "testimonial_rating_VG4D3b",
+                "testimonial_text_kDj849",
+                "testimonial_client_XMQRNx"
+              ]
+            },
+            "testimonial_card_he9Chi": {
+              "type": "testimonial-card",
+              "name": "Testimonial card",
+              "settings": {
+                "card_type": "grid",
+                "image_position": "top",
+                "alignment": "center",
+                "gap": 10,
+                "enable_overlay": false,
+                "overlay_color": "",
+                "overlay_style": "solid",
+                "overlay_direction": "top_bottom",
+                "inherit_color_scheme": true,
+                "color_scheme": "",
+                "border_style": "none",
+                "border_width": 1,
+                "border_opacity": 100,
+                "border_radius": 0,
+                "padding_top": 20,
+                "padding_bottom": 20,
+                "padding_left": 20,
+                "padding_right": 20
+              },
+              "blocks": {
+                "testimonial_heading_Lk6DMR": {
+                  "type": "testimonial-heading",
+                  "name": "Heading",
+                  "settings": {
+                    "heading": "Client Says",
+                    "heading_size": "h2",
+                    "alignment": "center",
+                    "color": "",
+                    "padding_top": 0,
+                    "padding_bottom": 0
+                  },
+                  "blocks": {}
+                },
+                "testimonial_rating_c8DjAy": {
+                  "type": "testimonial-rating",
+                  "name": "Custom rating",
+                  "settings": {
+                    "rating": "5",
+                    "rating_color": "#000000",
+                    "star_size": 18,
+                    "gap": 10,
+                    "padding_top": 0,
+                    "padding_bottom": 0,
+                    "padding_left": 0,
+                    "padding_right": 0
+                  },
+                  "blocks": {}
+                },
+                "testimonial_text_njDNb4": {
+                  "type": "testimonial-text",
+                  "name": "Description",
+                  "settings": {
+                    "text": "<p>What our customers tell about us</p>",
+                    "alignment": "center",
+                    "color": "",
+                    "padding_top": 0,
+                    "padding_bottom": 0
+                  },
+                  "blocks": {}
+                },
+                "testimonial_client_FxLpnx": {
+                  "type": "testimonial-client",
+                  "name": "Client details",
+                  "settings": {
+                    "name": "John",
+                    "profession": "Director",
+                    "image_position": "top",
+                    "aspect_ratio": "circle",
+                    "gap": 10,
+                    "padding_top": 0,
+                    "padding_bottom": 0,
+                    "padding_left": 0,
+                    "padding_right": 0
+                  },
+                  "blocks": {}
+                },
+                "image": {
+                  "type": "testimonial-image",
+                  "static": true,
+                  "settings": {
+                    "aspect_ratio": "landscape",
+                    "image_fit": "cover",
+                    "border_radius": 0
+                  },
+                  "blocks": {}
+                }
+              },
+              "block_order": [
+                "testimonial_heading_Lk6DMR",
+                "testimonial_rating_c8DjAy",
+                "testimonial_text_njDNb4",
+                "testimonial_client_FxLpnx"
+              ]
+            }
+          },
+          "block_order": [
+            "testimonial_card_Eyb64x",
+            "testimonial_card_gVcUPd",
+            "testimonial_card_VrAeQn",
+            "testimonial_card_he9Chi"
+          ]
+        }
+      },
+      "block_order": [
+        "testimonial_content_q3ndKw"
+      ],
+      "name": "Testimonial",
+      "settings": {
+        "enable_container": true,
+        "width": "full",
+        "color_scheme": "",
+        "padding_top": 40,
+        "padding_bottom": 40
+      }
     }
   },
   "order": [
     "main",
-    "collection_list_home"
+    "collection_list_home",
+    "testimonial_wMeTgj"
   ]
 }
