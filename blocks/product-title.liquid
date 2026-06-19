@@ -1,0 +1,77 @@
+{%- comment -%}
+  Block: product-title
+  Product title with optional vendor eyebrow and rating placeholder.
+{%- endcomment -%}
+
+{%- liquid
+  assign p = block.settings.product
+-%}
+
+<div class="product-title" {{ block.shopify_attributes }}>
+  {%- if block.settings.show_vendor and p.vendor != blank -%}
+    <p class="product-title__vendor">{{ p.vendor | escape }}</p>
+  {%- endif -%}
+
+  {%- if p != blank -%}
+    <{{ block.settings.heading_tag }} class="product-title__text" style="--fp-title-size: {{ block.settings.size }}px;">
+      {{ p.title | escape }}
+    </{{ block.settings.heading_tag }}>
+  {%- else -%}
+    <p class="product-title__text">{{ 'Product title' }}</p>
+  {%- endif -%}
+
+  {%- if block.settings.show_sku and p.selected_or_first_available_variant.sku != blank -%}
+    <p class="product-title__sku">SKU: {{ p.selected_or_first_available_variant.sku }}</p>
+  {%- endif -%}
+</div>
+
+{% stylesheet %}
+  .product-title { display: flex; flex-direction: column; gap: 4px; }
+  .product-title__vendor {
+    margin: 0;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+  .product-title__text {
+    margin: 0;
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight, 700);
+    font-size: var(--fp-title-size, 28px);
+    line-height: 1.15;
+  }
+  .product-title__sku { margin: 0; font-size: 0.75rem; opacity: 0.6; }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Title",
+  "settings": [
+    { "type": "product", "id": "product", "label": "Product" },
+    {
+      "type": "select",
+      "id": "heading_tag",
+      "label": "Heading tag",
+      "default": "h1",
+      "options": [
+        { "value": "h1", "label": "H1" },
+        { "value": "h2", "label": "H2" },
+        { "value": "h3", "label": "H3" }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "size",
+      "label": "Font size",
+      "min": 16, "max": 48, "step": 1, "unit": "px",
+      "default": 28
+    },
+    { "type": "checkbox", "id": "show_vendor", "label": "Show vendor", "default": true },
+    { "type": "checkbox", "id": "show_sku", "label": "Show SKU", "default": false }
+  ],
+  "presets": [
+    { "name": "Title", "settings": { "product": "{{ closest.product }}" } }
+  ]
+}
+{% endschema %}

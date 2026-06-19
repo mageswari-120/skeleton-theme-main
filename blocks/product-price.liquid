@@ -1,0 +1,110 @@
+{%- comment -%}
+  Block: product-price
+  Live price; updates on variant:change via <product-context>.
+{%- endcomment -%}
+
+{%- liquid
+  assign p = block.settings.product
+-%}
+
+<product-price class="product-price" style="--fp-price-size: {{ block.settings.size }}px;" {{ block.shopify_attributes }}>
+  {%- if p != blank -%}
+    {% render 'price', product: p, show_badge: block.settings.show_badge %}
+  {%- else -%}
+    <div class="price"><span class="price__current">$0.00</span></div>
+  {%- endif -%}
+</product-price>
+
+{% stylesheet %}
+  .product-price .price {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .product-price .price__current {
+    font-size: var(--fp-price-size, 22px);
+    font-weight: 600;
+  }
+  .product-price .price__compare { opacity: 0.55; font-size: 0.9em; }
+  .product-price .price--on-sale .price__current { color: var(--color-foreground); }
+  .product-price .price__badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #b42318;
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  if (!customElements.get('product-price')) {
+    customElements.define('product-price', class extends HTMLElement {
+      connectedCallback() {
+        this._ctx = this.closest('product-context');
+        if (!this._ctx) return;
+        this._handler = this._onVariant.bind(this);
+        this._ctx.addEventListener('variant:change', this._handler);
+      }
+      disconnectedCallback() {
+        if (this._ctx && this._handler) {
+          this._ctx.removeEventListener('variant:change', this._handler);
+        }
+      }
+      _money(cents) {
+        if (window.Shopify && Shopify.formatMoney && this._ctx.dataset.moneyFormat) {
+          return Shopify.formatMoney(cents, this._ctx.dataset.moneyFormat);
+        }
+        return (cents / 100).toLocaleString(undefined, {
+          style: 'currency',
+          currency: (window.Shopify && Shopify.currency && Shopify.currency.active) || 'USD',
+        });
+      }
+      _onVariant(event) {
+        const variant = event.detail.variant;
+        const wrapper = this.querySelector('[data-price-wrapper]');
+        if (!wrapper) return;
+        if (!variant) {
+          wrapper.classList.add('price--unavailable');
+          return;
+        }
+        wrapper.classList.remove('price--unavailable');
+        const current = wrapper.querySelector('[data-price]');
+        if (current) current.textContent = this._money(variant.price);
+
+        const onSale = variant.compare_at_price && variant.compare_at_price > variant.price;
+        wrapper.classList.toggle('price--on-sale', !!onSale);
+        let compare = wrapper.querySelector('[data-compare-price]');
+        if (onSale) {
+          if (!compare) {
+            compare = document.createElement('s');
+            compare.className = 'price__compare';
+            compare.setAttribute('data-compare-price', '');
+            current.after(compare);
+          }
+          compare.textContent = this._money(variant.compare_at_price);
+        } else if (compare) {
+          compare.remove();
+        }
+      }
+    });
+  }
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "Price",
+  "settings": [
+    { "type": "product", "id": "product", "label": "Product" },
+    {
+      "type": "range",
+      "id": "size",
+      "label": "Font size",
+      "min": 14, "max": 40, "step": 1, "unit": "px",
+      "default": 22
+    },
+    { "type": "checkbox", "id": "show_badge", "label": "Show discount badge", "default": true }
+  ],
+  "presets": [
+    { "name": "Price", "settings": { "product": "{{ closest.product }}" } }
+  ]
+}
+{% endschema %}

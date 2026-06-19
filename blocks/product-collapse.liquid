@@ -1,0 +1,72 @@
+{%- comment -%}
+  Block: product-collapse
+  A collapsible row (accordion) for details, care, shipping, etc.
+  Content can be free text or pulled from a product metafield.
+{%- endcomment -%}
+
+{%- liquid
+  assign p = block.settings.product
+  assign content = block.settings.content
+  if block.settings.source == 'metafield' and block.settings.metafield != blank
+    assign content = p.metafields.custom[block.settings.metafield].value
+  endif
+-%}
+
+<details class="collapse-row"{% if block.settings.open %} open{% endif %} {{ block.shopify_attributes }}>
+  <summary class="collapse-row__summary">
+    <span>{{ block.settings.heading | escape }}</span>
+    <span class="collapse-row__icon" aria-hidden="true"></span>
+  </summary>
+  <div class="collapse-row__content rte">
+    {%- if content != blank -%}
+      {{ content }}
+    {%- else -%}
+      <p>Add content for this section.</p>
+    {%- endif -%}
+  </div>
+</details>
+
+{% stylesheet %}
+  .collapse-row { border-top: 1px solid #e5e7eb; padding: 4px 0; }
+  .collapse-row__summary {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 0; cursor: pointer; font-weight: 600; list-style: none;
+  }
+  .collapse-row__summary::-webkit-details-marker { display: none; }
+  .collapse-row__icon { position: relative; width: 14px; height: 14px; flex: 0 0 auto; }
+  .collapse-row__icon::before,
+  .collapse-row__icon::after {
+    content: ''; position: absolute; background: currentColor; transition: transform 0.2s ease;
+  }
+  .collapse-row__icon::before { top: 6px; left: 0; width: 14px; height: 2px; }
+  .collapse-row__icon::after { top: 0; left: 6px; width: 2px; height: 14px; }
+  .collapse-row[open] .collapse-row__icon::after { transform: rotate(90deg); opacity: 0; }
+  .collapse-row__content { padding: 0 0 12px; line-height: 1.6; }
+  .collapse-row__content > :first-child { margin-top: 0; }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Collapse",
+  "settings": [
+    { "type": "product", "id": "product", "label": "Product" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Product details" },
+    {
+      "type": "select",
+      "id": "source",
+      "label": "Content source",
+      "default": "text",
+      "options": [
+        { "value": "text", "label": "Custom text" },
+        { "value": "metafield", "label": "Product metafield (custom.*)" }
+      ]
+    },
+    { "type": "richtext", "id": "content", "label": "Content", "visible_if": "{{ block.settings.source == 'text' }}" },
+    { "type": "text", "id": "metafield", "label": "Metafield key (custom.<key>)", "visible_if": "{{ block.settings.source == 'metafield' }}" },
+    { "type": "checkbox", "id": "open", "label": "Open by default", "default": false }
+  ],
+  "presets": [
+    { "name": "Collapse", "settings": { "product": "{{ closest.product }}" } }
+  ]
+}
+{% endschema %}

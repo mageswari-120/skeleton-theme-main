@@ -1,0 +1,70 @@
+{%- comment -%}
+  Block: icon-with-text
+  A small trust/feature row: icon (image or built-in) + label.
+{%- endcomment -%}
+
+{%- liquid
+  assign layout = block.settings.layout | default: 'row'
+-%}
+
+<div class="icon-with-text icon-with-text--{{ layout }}" {{ block.shopify_attributes }}>
+  <span class="icon-with-text__icon" aria-hidden="true">
+    {%- if block.settings.icon_image != blank -%}
+      {{ block.settings.icon_image | image_url: width: 48 | image_tag: loading: 'lazy', width: 24, height: 24, alt: '' }}
+    {%- else -%}
+      {%- case block.settings.icon -%}
+        {%- when 'truck' -%}
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7"/><circle cx="5.5" cy="18.5" r="2"/><circle cx="18.5" cy="18.5" r="2"/></svg>
+        {%- when 'shield' -%}
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z"/></svg>
+        {%- when 'return' -%}
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h13a5 5 0 0 1 0 10H8"/><path d="M7 3L3 7l4 4"/></svg>
+        {%- else -%}
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+      {%- endcase -%}
+    {%- endif -%}
+  </span>
+  <span class="icon-with-text__text">{{ block.settings.text | escape }}</span>
+</div>
+
+{% stylesheet %}
+  .icon-with-text { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
+  .icon-with-text--column { flex-direction: column; text-align: center; }
+  .icon-with-text__icon { display: inline-flex; }
+  .icon-with-text__icon img { width: 24px; height: 24px; object-fit: contain; }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Icon with text",
+  "settings": [
+    {
+      "type": "select",
+      "id": "icon",
+      "label": "Icon",
+      "default": "check",
+      "options": [
+        { "value": "check", "label": "Check" },
+        { "value": "truck", "label": "Shipping" },
+        { "value": "shield", "label": "Secure" },
+        { "value": "return", "label": "Returns" }
+      ]
+    },
+    { "type": "image_picker", "id": "icon_image", "label": "Custom icon (optional)" },
+    { "type": "text", "id": "text", "label": "Text", "default": "Free shipping" },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Layout",
+      "default": "row",
+      "options": [
+        { "value": "row", "label": "Icon beside text" },
+        { "value": "column", "label": "Icon above text" }
+      ]
+    }
+  ],
+  "presets": [
+    { "name": "Icon with text" }
+  ]
+}
+{% endschema %}

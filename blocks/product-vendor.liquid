@@ -1,0 +1,38 @@
+{%- comment -%}
+  Block: product-vendor
+  Displays the product vendor, optionally linked to its collection.
+{%- endcomment -%}
+
+{%- liquid
+  assign p = block.settings.product
+-%}
+
+<div class="product-vendor" {{ block.shopify_attributes }}>
+  {%- if p.vendor != blank -%}
+    {%- if block.settings.link -%}
+      <a class="product-vendor__link" href="{{ p.vendor | url_for_vendor }}">{{ p.vendor | escape }}</a>
+    {%- else -%}
+      <span>{{ p.vendor | escape }}</span>
+    {%- endif -%}
+  {%- else -%}
+    <span>Vendor</span>
+  {%- endif -%}
+</div>
+
+{% stylesheet %}
+  .product-vendor { font-size: 0.85rem; opacity: 0.8; }
+  .product-vendor__link { color: inherit; }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Vendor",
+  "settings": [
+    { "type": "product", "id": "product", "label": "Product" },
+    { "type": "checkbox", "id": "link", "label": "Link to vendor collection", "default": true }
+  ],
+  "presets": [
+    { "name": "Vendor", "settings": { "product": "{{ closest.product }}" } }
+  ]
+}
+{% endschema %}

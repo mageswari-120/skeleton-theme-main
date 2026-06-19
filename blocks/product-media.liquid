@@ -1,0 +1,402 @@
+{%- comment -%}
+  Block: product-media (static, fixed slot)
+  Native product gallery — no framework.
+    - Carousel (CSS scroll-snap) or Grid layout
+    - Thumbnails (left or bottom), arrows, dots
+    - Image / video / external video / 3D model
+    - Optional lightbox zoom via native <dialog>
+    - Syncs to the active variant's featured media on variant:change
+{%- endcomment -%}
+
+{%- liquid
+  assign p = block.settings.product
+  assign media_type = block.settings.media_type | default: 'carousel'
+  assign nav = block.settings.carousel_nav | default: 'thumbnails'
+  assign show_thumbs = block.settings.show_thumbnails
+  assign thumb_pos = block.settings.thumbnail_position | default: 'left'
+  assign zoom = block.settings.zoom_type | default: 'lightbox'
+  assign fit = block.settings.image_fit | default: 'cover'
+  assign media_count = p.media.size
+-%}
+
+<product-media-gallery
+  class="product-media product-media--{{ media_type }} product-media--thumbs-{{ thumb_pos }}"
+  data-media-type="{{ media_type }}"
+  data-zoom="{{ zoom }}"
+  style="
+    --fpm-fit: {{ fit }};
+    --fpm-radius: {{ block.settings.border_radius }}px;
+    --fpm-border: {% if block.settings.border_style == 'none' %}0{% else %}{{ block.settings.border_width }}px {{ block.settings.border_style }} {{ block.settings.border_color }}{% endif %};
+  "
+  {{ block.shopify_attributes }}
+>
+  {%- if p == blank or media_count == 0 -%}
+    <div class="product-media__placeholder">
+      {{ 'image' | placeholder_svg_tag: 'product-media__placeholder-svg' }}
+    </div>
+  {%- elsif media_type == 'grid' -%}
+    {%- comment -%} ── GRID ── {%- endcomment -%}
+    <div class="product-media__grid">
+      {%- for media in p.media -%}
+        <div class="product-media__grid-item">
+          {% render 'product-media-item', media: media, product: p, zoom: zoom, block: block, eager: forloop.first %}
+        </div>
+      {%- endfor -%}
+    </div>
+  {%- else -%}
+    {%- comment -%} ── CAROUSEL ── {%- endcomment -%}
+    <div class="product-media__layout">
+      {%- if show_thumbs and media_count > 1 -%}
+        <div class="product-media__thumbs" role="tablist" aria-label="Product gallery">
+          {%- for media in p.media -%}
+            <button
+              type="button"
+              class="product-media__thumb{% if forloop.first %} is-active{% endif %}"
+              role="tab"
+              aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+              data-thumb
+              data-index="{{ forloop.index0 }}"
+              aria-label="{{ media.alt | escape | default: p.title }}"
+            >
+              {% if media.media_type != 'image' %}<span class="product-media__thumb-badge" aria-hidden="true">▶</span>{% endif %}
+              {{ media.preview_image | image_url: width: 160 | image_tag: loading: 'lazy', width: 80, height: 80, alt: media.alt | escape | default: p.title }}
+            </button>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+
+      <div class="product-media__viewport">
+        <div class="product-media__track" data-track>
+          {%- for media in p.media -%}
+            <div class="product-media__slide" data-slide data-index="{{ forloop.index0 }}" data-media-id="{{ media.id }}">
+              {% render 'product-media-item', media: media, product: p, zoom: zoom, block: block, eager: forloop.first %}
+            </div>
+          {%- endfor -%}
+        </div>
+
+        {%- if media_count > 1 and nav contains 'arrows' or nav == 'thumbnails' -%}
+          <button type="button" class="product-media__arrow product-media__arrow--prev" data-prev aria-label="Previous">‹</button>
+          <button type="button" class="product-media__arrow product-media__arrow--next" data-next aria-label="Next">›</button>
+        {%- endif -%}
+
+        {%- if media_count > 1 and nav contains 'dots' -%}
+          <div class="product-media__dots" aria-hidden="true">
+            {%- for media in p.media -%}
+              <button type="button" class="product-media__dot{% if forloop.first %} is-active{% endif %}" data-dot data-index="{{ forloop.index0 }}"></button>
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+  {%- endif -%}
+
+  {%- if zoom == 'lightbox' and p != blank and media_count > 0 -%}
+    <dialog class="product-media__lightbox" data-lightbox>
+      <button type="button" class="product-media__lightbox-close" data-lightbox-close aria-label="Close">×</button>
+      <div class="product-media__lightbox-track" data-lightbox-track>
+        {%- for media in p.media -%}
+          {%- if media.media_type == 'image' -%}
+            <img src="{{ media | image_url: width: 1600 }}" alt="{{ media.alt | escape | default: p.title }}" loading="lazy" width="{{ media.width }}" height="{{ media.height }}" data-lightbox-slide data-index="{{ forloop.index0 }}">
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    </dialog>
+  {%- endif -%}
+</product-media-gallery>
+
+{% stylesheet %}
+  .product-media { display: block; position: relative; }
+  .product-media__placeholder svg,
+  .product-media__placeholder-svg {
+    width: 100%; height: auto; background: #f3f3f3; border-radius: var(--fpm-radius, 8px);
+  }
+
+  /* Carousel */
+  .product-media__layout { display: flex; gap: 12px; }
+  .product-media--thumbs-bottom .product-media__layout { flex-direction: column; }
+  .product-media__viewport { position: relative; flex: 1 1 auto; min-width: 0; }
+
+  .product-media__track {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    border: var(--fpm-border, 0);
+    border-radius: var(--fpm-radius, 8px);
+    scrollbar-width: none;
+  }
+  .product-media__track::-webkit-scrollbar { display: none; }
+  .product-media__slide { flex: 0 0 100%; scroll-snap-align: start; }
+  .product-media__slide img,
+  .product-media__slide video,
+  .product-media__slide model-viewer {
+    display: block; width: 100%; height: 100%;
+    aspect-ratio: 1 / 1; object-fit: var(--fpm-fit, cover);
+  }
+  .product-media__slide .product-media__external { aspect-ratio: 16 / 9; width: 100%; border: 0; }
+
+  /* Thumbnails */
+  .product-media__thumbs { display: flex; gap: 8px; flex: 0 0 auto; }
+  .product-media--thumbs-left .product-media__thumbs { flex-direction: column; }
+  .product-media--thumbs-bottom .product-media__thumbs { flex-direction: row; overflow-x: auto; }
+  .product-media__thumb {
+    position: relative; width: 72px; height: 72px; padding: 0; cursor: pointer;
+    border: 2px solid transparent; border-radius: 6px; overflow: hidden; background: none; flex: 0 0 auto;
+  }
+  .product-media__thumb.is-active { border-color: var(--color-foreground); }
+  .product-media__thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .product-media__thumb-badge {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.35); color: #fff; font-size: 12px;
+  }
+
+  /* Arrows + dots */
+  .product-media__arrow {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 36px; height: 36px; border-radius: 50%; border: 0; cursor: pointer;
+    background: rgba(255,255,255,0.9); color: #111; font-size: 22px; line-height: 1;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15); z-index: 2;
+  }
+  .product-media__arrow--prev { left: 8px; }
+  .product-media__arrow--next { right: 8px; }
+  .product-media__dots { display: flex; justify-content: center; gap: 6px; margin-top: 10px; }
+  .product-media__dot { width: 7px; height: 7px; border-radius: 50%; border: 0; padding: 0; background: #d1d5db; cursor: pointer; }
+  .product-media__dot.is-active { background: var(--color-foreground); transform: scale(1.25); }
+
+  /* Grid */
+  .product-media__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .product-media__grid-item:first-child { grid-column: 1 / -1; }
+  .product-media__grid-item {
+    overflow: hidden; border: var(--fpm-border, 0); border-radius: var(--fpm-radius, 8px);
+  }
+  .product-media__grid-item img,
+  .product-media__grid-item video { display: block; width: 100%; height: 100%; object-fit: var(--fpm-fit, cover); }
+
+  .product-media__zoom { display: block; cursor: zoom-in; }
+
+  /* Lightbox */
+  .product-media__lightbox { border: 0; padding: 0; max-width: 92vw; max-height: 92vh; background: #000; }
+  .product-media__lightbox::backdrop { background: rgba(0,0,0,0.8); }
+  .product-media__lightbox-track { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; }
+  .product-media__lightbox-track img { flex: 0 0 100%; scroll-snap-align: center; max-height: 88vh; object-fit: contain; }
+  .product-media__lightbox-close {
+    position: absolute; top: 8px; right: 12px; z-index: 2; background: none; border: 0;
+    color: #fff; font-size: 32px; line-height: 1; cursor: pointer;
+  }
+
+  @media (max-width: 749px) {
+    .product-media__layout { flex-direction: column; }
+    .product-media--thumbs-left .product-media__thumbs { flex-direction: row; overflow-x: auto; }
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  if (!customElements.get('product-media-gallery')) {
+    customElements.define('product-media-gallery', class extends HTMLElement {
+      connectedCallback() {
+        this.track = this.querySelector('[data-track]');
+        this.slides = [...this.querySelectorAll('[data-slide]')];
+        this.thumbs = [...this.querySelectorAll('[data-thumb]')];
+        this.dots = [...this.querySelectorAll('[data-dot]')];
+
+        this.thumbs.forEach((t) =>
+          t.addEventListener('click', () => this.goTo(Number(t.dataset.index)))
+        );
+        this.dots.forEach((d) =>
+          d.addEventListener('click', () => this.goTo(Number(d.dataset.index)))
+        );
+        const prev = this.querySelector('[data-prev]');
+        const next = this.querySelector('[data-next]');
+        if (prev) prev.addEventListener('click', () => this.step(-1));
+        if (next) next.addEventListener('click', () => this.step(1));
+
+        if (this.track) {
+          this.track.addEventListener('scroll', () => this._onScroll(), { passive: true });
+        }
+
+        this._initLightbox();
+
+        this._ctx = this.closest('product-context');
+        if (this._ctx) {
+          this._variantHandler = this._onVariant.bind(this);
+          this._ctx.addEventListener('variant:change', this._variantHandler);
+        }
+        this.current = 0;
+      }
+
+      disconnectedCallback() {
+        if (this._ctx && this._variantHandler) {
+          this._ctx.removeEventListener('variant:change', this._variantHandler);
+        }
+      }
+
+      goTo(index) {
+        const slide = this.slides[index];
+        if (!slide || !this.track) return;
+        this.track.scrollTo({ left: slide.offsetLeft, behavior: 'smooth' });
+        this._setActive(index);
+      }
+
+      step(dir) {
+        const next = Math.max(0, Math.min(this.slides.length - 1, this.current + dir));
+        this.goTo(next);
+      }
+
+      _onScroll() {
+        if (!this.track) return;
+        const index = Math.round(this.track.scrollLeft / this.track.clientWidth);
+        this._setActive(index);
+      }
+
+      _setActive(index) {
+        this.current = index;
+        this.thumbs.forEach((t, i) => {
+          const on = i === index;
+          t.classList.toggle('is-active', on);
+          t.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+        this.dots.forEach((d, i) => d.classList.toggle('is-active', i === index));
+      }
+
+      _initLightbox() {
+        this.dialog = this.querySelector('[data-lightbox]');
+        if (!this.dialog || typeof this.dialog.showModal !== 'function') return;
+        this.querySelectorAll('[data-zoom-trigger]').forEach((el) => {
+          el.addEventListener('click', (e) => {
+            e.preventDefault();
+            const index = Number(el.dataset.index) || 0;
+            this.dialog.showModal();
+            const target = this.dialog.querySelector('[data-lightbox-slide][data-index="' + index + '"]');
+            if (target) target.scrollIntoView({ inline: 'center' });
+          });
+        });
+        const close = this.dialog.querySelector('[data-lightbox-close]');
+        if (close) close.addEventListener('click', () => this.dialog.close());
+        this.dialog.addEventListener('click', (e) => {
+          if (e.target === this.dialog) this.dialog.close();
+        });
+      }
+
+      _onVariant(event) {
+        const variant = event.detail.variant;
+        if (!variant || !variant.featured_media) return;
+        const index = this.slides.findIndex(
+          (s) => String(s.dataset.mediaId) === String(variant.featured_media.id)
+        );
+        if (index > -1) this.goTo(index);
+      }
+    });
+  }
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "Product media",
+  "settings": [
+    { "type": "product", "id": "product", "label": "Product" },
+    { "type": "header", "content": "Media display" },
+    {
+      "type": "select",
+      "id": "media_type",
+      "label": "Media type",
+      "default": "carousel",
+      "options": [
+        { "value": "carousel", "label": "Carousel" },
+        { "value": "grid", "label": "Grid" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "carousel_nav",
+      "label": "Carousel navigation",
+      "default": "thumbnails",
+      "options": [
+        { "value": "thumbnails", "label": "Thumbnails" },
+        { "value": "arrows", "label": "Arrows" },
+        { "value": "dots", "label": "Dots" },
+        { "value": "arrows_and_dots", "label": "Arrows and dots" }
+      ],
+      "visible_if": "{{ block.settings.media_type == 'carousel' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_thumbnails",
+      "label": "Show thumbnails",
+      "default": true,
+      "visible_if": "{{ block.settings.media_type == 'carousel' }}"
+    },
+    {
+      "type": "select",
+      "id": "thumbnail_position",
+      "label": "Thumbnail position",
+      "default": "left",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "bottom", "label": "Bottom" }
+      ],
+      "visible_if": "{{ block.settings.show_thumbnails }}"
+    },
+    {
+      "type": "select",
+      "id": "zoom_type",
+      "label": "Zoom type",
+      "default": "lightbox",
+      "options": [
+        { "value": "none", "label": "None" },
+        { "value": "lightbox", "label": "Lightbox" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "image_fit",
+      "label": "Image fit",
+      "default": "cover",
+      "options": [
+        { "value": "cover", "label": "Cover" },
+        { "value": "contain", "label": "Contain" }
+      ]
+    },
+    { "type": "header", "content": "Border" },
+    {
+      "type": "select",
+      "id": "border_style",
+      "label": "Border style",
+      "default": "none",
+      "options": [
+        { "value": "none", "label": "None" },
+        { "value": "solid", "label": "Solid" },
+        { "value": "dashed", "label": "Dashed" }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "border_width",
+      "label": "Border width",
+      "min": 0, "max": 8, "step": 1, "unit": "px",
+      "default": 1,
+      "visible_if": "{{ block.settings.border_style != 'none' }}"
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Border color",
+      "default": "#e5e7eb",
+      "visible_if": "{{ block.settings.border_style != 'none' }}"
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "label": "Border radius",
+      "min": 0, "max": 40, "step": 1, "unit": "px",
+      "default": 8
+    },
+    { "type": "header", "content": "Video" },
+    { "type": "checkbox", "id": "video_autoplay", "label": "Autoplay", "default": false },
+    { "type": "checkbox", "id": "video_loop", "label": "Loop", "default": true },
+    { "type": "checkbox", "id": "video_controls", "label": "Show controls", "default": true }
+  ],
+  "presets": [
+    { "name": "Product media", "settings": { "product": "{{ closest.product }}" } }
+  ]
+}
+{% endschema %}

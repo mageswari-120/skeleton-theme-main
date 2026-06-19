@@ -1,0 +1,277 @@
+{%- comment -%}
+  Block: product-buy-buttons
+  Owns the product <form> (hidden variant id + quantity). Adds to cart
+  via AJAX, supports Buy now (dynamic checkout) and an optional wishlist.
+{%- endcomment -%}
+
+{%- liquid
+  assign p = block.settings.product
+  assign current_variant = p.selected_or_first_available_variant
+  assign atc_style = block.settings.atc_style | default: 'filled'
+  assign bn_style = block.settings.buy_now_style | default: 'outline'
+-%}
+
+<product-buy-buttons
+  class="buy-buttons"
+  style="{% if block.settings.atc_color != blank %}--bb-atc-bg: {{ block.settings.atc_color }};{% endif %}"
+  {{ block.shopify_attributes }}
+>
+  {%- if p == blank -%}
+    <button type="button" class="buy-buttons__atc btn--{{ atc_style }}" disabled>{{ block.settings.atc_label | default: 'Add to cart' }}</button>
+  {%- else -%}
+    {% form 'product', p, class: 'buy-buttons__form', novalidate: 'novalidate' %}
+      <input type="hidden" name="id" value="{{ current_variant.id }}" data-variant-id>
+
+      <div class="buy-buttons__row">
+        {%- if block.settings.show_quantity -%}
+          <div class="buy-buttons__qty" data-qty>
+            <button type="button" class="buy-buttons__qty-btn" data-qty-down aria-label="Decrease quantity">−</button>
+            <input type="number" class="buy-buttons__qty-input" name="quantity" value="1" min="1" inputmode="numeric" aria-label="Quantity">
+            <button type="button" class="buy-buttons__qty-btn" data-qty-up aria-label="Increase quantity">+</button>
+          </div>
+        {%- endif -%}
+
+        <button
+          type="submit"
+          class="buy-buttons__atc btn--{{ atc_style }}"
+          data-atc
+          {% unless current_variant.available %}disabled{% endunless %}
+        >
+          <span data-atc-text>
+            {%- if current_variant.available -%}{{ block.settings.atc_label | default: 'Add to cart' }}{%- else -%}Sold out{%- endif -%}
+          </span>
+        </button>
+
+        {%- if block.settings.show_wishlist -%}
+          <button type="button" class="buy-buttons__wishlist" data-wishlist aria-pressed="false" aria-label="Add to wishlist">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7.5-4.9-9.5-9.2C1 8.5 2.5 5.5 5.6 5.5c1.9 0 3.2 1.1 4.4 2.6 1.2-1.5 2.5-2.6 4.4-2.6 3.1 0 4.6 3 3.1 6.3C19.5 16.1 12 21 12 21z"/></svg>
+          </button>
+        {%- endif -%}
+      </div>
+
+      {%- if block.settings.show_buy_now and current_variant.available -%}
+        <div class="buy-buttons__buy-now btn--{{ bn_style }}-wrap">
+          {{ form | payment_button }}
+        </div>
+      {%- endif -%}
+
+      <p class="buy-buttons__error" data-atc-error hidden role="alert"></p>
+    {% endform %}
+  {%- endif -%}
+</product-buy-buttons>
+
+{% stylesheet %}
+  .buy-buttons { display: block; }
+  .buy-buttons__form { display: flex; flex-direction: column; gap: 12px; }
+  .buy-buttons__row { display: flex; gap: 10px; align-items: stretch; }
+
+  .buy-buttons__qty {
+    display: inline-flex; align-items: center; border: 1px solid #d1d5db;
+    border-radius: var(--style-border-radius-inputs, 6px); overflow: hidden; flex: 0 0 auto;
+  }
+  .buy-buttons__qty-btn { width: 40px; border: 0; background: none; font-size: 18px; cursor: pointer; }
+  .buy-buttons__qty-input {
+    width: 44px; text-align: center; border: 0; font-size: 1rem; -moz-appearance: textfield;
+  }
+  .buy-buttons__qty-input::-webkit-outer-spin-button,
+  .buy-buttons__qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+  .buy-buttons__atc {
+    flex: 1 1 auto; cursor: pointer; font-size: 1rem; font-weight: 600;
+    padding: var(--button-padding-vertical, 14px) var(--button-padding-horizontal, 28px);
+    border-radius: var(--button-border-radius, 6px);
+  }
+  .btn--filled {
+    background: var(--bb-atc-bg, var(--button-primary-bg)); color: var(--button-primary-color);
+    border: 1px solid var(--bb-atc-bg, var(--button-primary-border));
+  }
+  .btn--filled:hover:not([disabled]) { background: var(--button-primary-hover-bg); }
+  .btn--outline {
+    background: transparent; color: var(--button-outline-color);
+    border: 1px solid var(--button-outline-border);
+  }
+  .btn--outline:hover:not([disabled]) { background: var(--button-outline-hover-bg); color: var(--button-outline-hover-color); }
+  .btn--pill { border-radius: 999px; }
+  .buy-buttons__atc[disabled] { opacity: 0.5; cursor: not-allowed; }
+  .buy-buttons__atc.is-loading { opacity: 0.7; pointer-events: none; }
+
+  .buy-buttons__wishlist {
+    flex: 0 0 auto; width: 48px; border: 1px solid #d1d5db; background: #fff; cursor: pointer;
+    border-radius: var(--button-border-radius, 6px); display: inline-flex; align-items: center; justify-content: center;
+  }
+  .buy-buttons__wishlist[aria-pressed="true"] { color: #b42318; }
+  .buy-buttons__wishlist[aria-pressed="true"] svg { fill: #b42318; }
+
+  .buy-buttons__buy-now { display: block; }
+  .buy-buttons__buy-now.btn--pill-wrap [is="shopify-payment-button"] { border-radius: 999px; }
+
+  .buy-buttons__error { margin: 0; color: #b42318; font-size: 0.85rem; }
+
+  .fp-toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px);
+    background: #111; color: #fff; padding: 12px 20px; border-radius: 8px;
+    font-size: 0.9rem; z-index: 9999; opacity: 0; pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  .fp-toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
+{% endstylesheet %}
+
+{% javascript %}
+  if (!customElements.get('product-buy-buttons')) {
+    customElements.define('product-buy-buttons', class extends HTMLElement {
+      connectedCallback() {
+        this.form = this.querySelector('form');
+        this.atc = this.querySelector('[data-atc]');
+        this.atcText = this.querySelector('[data-atc-text]');
+        this.errorEl = this.querySelector('[data-atc-error]');
+        this.idInput = this.querySelector('[data-variant-id]');
+        this._defaultLabel = this.atcText ? this.atcText.textContent : 'Add to cart';
+
+        const up = this.querySelector('[data-qty-up]');
+        const down = this.querySelector('[data-qty-down]');
+        this.qtyInput = this.querySelector('.buy-buttons__qty-input');
+        if (up) up.addEventListener('click', () => this._stepQty(1));
+        if (down) down.addEventListener('click', () => this._stepQty(-1));
+
+        const wishlist = this.querySelector('[data-wishlist]');
+        if (wishlist) {
+          wishlist.addEventListener('click', () => {
+            const on = wishlist.getAttribute('aria-pressed') === 'true';
+            wishlist.setAttribute('aria-pressed', on ? 'false' : 'true');
+          });
+        }
+
+        if (this.form) this.form.addEventListener('submit', this._onSubmit.bind(this));
+
+        this._ctx = this.closest('product-context');
+        if (this._ctx) {
+          this._handler = this._onVariant.bind(this);
+          this._ctx.addEventListener('variant:change', this._handler);
+        }
+      }
+
+      disconnectedCallback() {
+        if (this._ctx && this._handler) this._ctx.removeEventListener('variant:change', this._handler);
+      }
+
+      _stepQty(dir) {
+        if (!this.qtyInput) return;
+        const next = Math.max(1, (parseInt(this.qtyInput.value, 10) || 1) + dir);
+        this.qtyInput.value = next;
+      }
+
+      _onVariant(event) {
+        const variant = event.detail.variant;
+        if (!this.atc) return;
+        if (!variant) {
+          this.atc.disabled = true;
+          if (this.atcText) this.atcText.textContent = 'Unavailable';
+          return;
+        }
+        if (this.idInput) this.idInput.value = variant.id;
+        this.atc.disabled = !variant.available;
+        if (this.atcText) {
+          this.atcText.textContent = variant.available ? this._defaultLabel : 'Sold out';
+        }
+      }
+
+      async _onSubmit(event) {
+        if (!this.form) return;
+        event.preventDefault();
+        this._setError('');
+        this.atc.classList.add('is-loading');
+        try {
+          const res = await fetch('/cart/add.js', {
+            method: 'POST',
+            headers: { Accept: 'application/json' },
+            body: new FormData(this.form),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            this._setError(data.description || data.message || 'Could not add to cart');
+            return;
+          }
+          document.dispatchEvent(new CustomEvent('cart:updated', { bubbles: true, detail: { item: data } }));
+          this._refreshCartCount();
+          this._toast((this.atcText && this.atcText.textContent) || 'Added to cart');
+        } catch (e) {
+          this._setError('Could not add to cart');
+        } finally {
+          this.atc.classList.remove('is-loading');
+        }
+      }
+
+      async _refreshCartCount() {
+        try {
+          const res = await fetch('/cart.js', { headers: { Accept: 'application/json' } });
+          const cart = await res.json();
+          document.querySelectorAll('[data-cart-count]').forEach((el) => {
+            el.textContent = cart.item_count;
+          });
+        } catch (e) {
+          /* no-op */
+        }
+      }
+
+      _setError(msg) {
+        if (!this.errorEl) return;
+        this.errorEl.textContent = msg;
+        this.errorEl.hidden = !msg;
+      }
+
+      _toast(message) {
+        let toast = document.querySelector('.fp-toast');
+        if (!toast) {
+          toast = document.createElement('div');
+          toast.className = 'fp-toast';
+          document.body.appendChild(toast);
+        }
+        toast.textContent = '✓ ' + message;
+        toast.classList.add('is-visible');
+        clearTimeout(this._toastTimer);
+        this._toastTimer = setTimeout(() => toast.classList.remove('is-visible'), 2500);
+      }
+    });
+  }
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "Buy buttons",
+  "settings": [
+    { "type": "product", "id": "product", "label": "Product" },
+    { "type": "header", "content": "Add to cart" },
+    { "type": "text", "id": "atc_label", "label": "ATC label", "default": "Add to cart" },
+    {
+      "type": "select",
+      "id": "atc_style",
+      "label": "Button style",
+      "default": "filled",
+      "options": [
+        { "value": "filled", "label": "Filled" },
+        { "value": "outline", "label": "Outline" },
+        { "value": "pill", "label": "Pill" }
+      ]
+    },
+    { "type": "checkbox", "id": "show_quantity", "label": "Show qty input", "default": true },
+    { "type": "checkbox", "id": "show_wishlist", "label": "Show wishlist", "default": true },
+    { "type": "color", "id": "atc_color", "label": "ATC button color" },
+    { "type": "header", "content": "Buy now" },
+    { "type": "checkbox", "id": "show_buy_now", "label": "Show buy now", "default": true },
+    { "type": "text", "id": "buy_now_label", "label": "Buy now label", "default": "Buy now" },
+    {
+      "type": "select",
+      "id": "buy_now_style",
+      "label": "Buy now style",
+      "default": "outline",
+      "options": [
+        { "value": "outline", "label": "Outline" },
+        { "value": "filled", "label": "Filled" }
+      ]
+    }
+  ],
+  "presets": [
+    { "name": "Buy buttons", "settings": { "product": "{{ closest.product }}" } }
+  ]
+}
+{% endschema %}

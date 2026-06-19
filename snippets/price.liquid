@@ -1,0 +1,34 @@
+{%- comment -%}
+  Snippet: price
+  Renders price + compare-at price + optional discount badge.
+
+  Parameters:
+    product      {Object}  required
+    variant      {Object}  optional — defaults to selected_or_first_available_variant
+    show_badge   {Boolean} optional — show "x% off" badge (default true)
+    class        {String}  optional — extra class on the wrapper
+{%- endcomment -%}
+
+{%- liquid
+  assign target = variant | default: product.selected_or_first_available_variant
+  assign price = target.price | default: product.price
+  assign compare = target.compare_at_price
+  assign on_sale = false
+  if compare and compare > price
+    assign on_sale = true
+  endif
+  if show_badge == nil
+    assign show_badge = true
+  endif
+-%}
+
+<div class="price{% if on_sale %} price--on-sale{% endif %} {{ class }}" data-price-wrapper>
+  <span class="price__current" data-price>{{ price | money }}</span>
+  {%- if on_sale -%}
+    <s class="price__compare" data-compare-price>{{ compare | money }}</s>
+    {%- if show_badge -%}
+      {%- assign saved = compare | minus: price | times: 100.0 | divided_by: compare | round -%}
+      <span class="price__badge" data-price-badge>{{ saved }}% off</span>
+    {%- endif -%}
+  {%- endif -%}
+</div>

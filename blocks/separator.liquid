@@ -1,0 +1,39 @@
+{%- comment -%}
+  Block: separator
+  A horizontal divider line.
+{%- endcomment -%}
+
+<hr
+  class="fp-separator"
+  style="
+    --sep-thickness: {{ block.settings.thickness }}px;
+    --sep-color: {{ block.settings.color | default: '#e5e7eb' }};
+    --sep-spacing: {{ block.settings.spacing }}px;
+    --sep-width: {{ block.settings.width }}%;
+  "
+  {{ block.shopify_attributes }}
+>
+
+{% stylesheet %}
+  .fp-separator {
+    border: 0;
+    border-top: var(--sep-thickness, 1px) solid var(--sep-color, #e5e7eb);
+    margin: var(--sep-spacing, 8px) 0;
+    width: var(--sep-width, 100%);
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Separator",
+  "settings": [
+    { "type": "range", "id": "thickness", "label": "Thickness", "min": 1, "max": 8, "step": 1, "unit": "px", "default": 1 },
+    { "type": "color", "id": "color", "label": "Color", "default": "#e5e7eb" },
+    { "type": "range", "id": "spacing", "label": "Vertical spacing", "min": 0, "max": 48, "step": 2, "unit": "px", "default": 8 },
+    { "type": "range", "id": "width", "label": "Width", "min": 10, "max": 100, "step": 5, "unit": "%", "default": 100 }
+  ],
+  "presets": [
+    { "name": "Separator" }
+  ]
+}
+{% endschema %}

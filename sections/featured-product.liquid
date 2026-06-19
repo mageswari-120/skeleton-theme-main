@@ -1,0 +1,112 @@
+{%- comment -%}
+  ============================================================
+  Section : Featured product  —  Skeleton Theme (theme blocks)
+  ============================================================
+  Lets a merchant feature a single product anywhere (home page,
+  pages, etc.) using the same nested-block customizer as the
+  product template.
+
+  Architecture (all product context flows via closest.product):
+
+    featured-product (section)        ← product picker
+     └─ product-information (block)   ← layout / media width / sticky ATC / padding / bg
+          ├─ product-media   (static) ← gallery
+          └─ product-details (static) ← reorderable product blocks
+               ├─ product-title / product-price / product-description
+               ├─ product-variant-picker / product-buy-buttons / ...
+               └─ separator / icon-with-text / collapse / share / ...
+
+  The section sets `closest.product` so every descendant block can
+  bind its own `product` setting to {{ closest.product }} and work
+  on any template (featured placement or the product page itself).
+  ============================================================
+{%- endcomment -%}
+
+{%- liquid
+  assign fp_product = section.settings.product
+  if fp_product == blank
+    assign fp_product = product
+  endif
+-%}
+
+<div class="featured-product" data-section-id="{{ section.id }}">
+  {%- if fp_product == blank -%}
+    {%- comment -%} Editor / no product chosen yet {%- endcomment -%}
+    <div class="featured-product__placeholder">
+      Select a product to feature in this section.
+    </div>
+  {%- else -%}
+    {% content_for 'blocks', closest.product: fp_product %}
+  {%- endif -%}
+</div>
+
+{% stylesheet %}
+  .featured-product {
+    background: var(--color-background);
+    color: var(--color-foreground);
+  }
+  .featured-product__placeholder {
+    padding: 48px 20px;
+    text-align: center;
+    border: 1px dashed currentColor;
+    border-radius: var(--style-border-radius-inputs, 6px);
+    opacity: 0.6;
+    max-width: var(--page-width, 1200px);
+    margin-inline: auto;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Featured product",
+  "tag": "section",
+  "class": "section-featured-product",
+  "blocks": [{ "type": "product-information" }],
+  "settings": [
+    {
+      "type": "product",
+      "id": "product",
+      "label": "Product"
+    }
+  ],
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "presets": [
+    {
+      "name": "Featured product",
+      "settings": {
+        "product": "{{ closest.product }}"
+      },
+      "blocks": [
+        {
+          "type": "product-information",
+          "settings": {
+            "product": "{{ closest.product }}"
+          },
+          "blocks": [
+            {
+              "id": "media",
+              "type": "product-media",
+              "static": true,
+              "settings": { "product": "{{ closest.product }}" }
+            },
+            {
+              "id": "details",
+              "type": "product-details",
+              "static": true,
+              "blocks": [
+                { "type": "product-title", "settings": { "product": "{{ closest.product }}" } },
+                { "type": "product-price", "settings": { "product": "{{ closest.product }}" } },
+                { "type": "product-variant-picker", "settings": { "product": "{{ closest.product }}" } },
+                { "type": "product-buy-buttons", "settings": { "product": "{{ closest.product }}" } },
+                { "type": "product-description", "settings": { "product": "{{ closest.product }}" } }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,248 @@
+{%- comment -%}
+  Block: product-information (PARENT)
+  Lays out the media gallery and the details column, owns the
+  product <form>, and coordinates variant selection for all child
+  blocks via the <product-context> custom element.
+
+  Renders two static children:
+    - product-media   (id: media)
+    - product-details (id: details)  ← wrapped in the product form
+{%- endcomment -%}
+
+{%- liquid
+  assign p = block.settings.product
+  assign layout = block.settings.layout | default: 'media-left'
+  assign media_width = block.settings.media_width | default: 48
+  assign max_width = block.settings.max_width | default: '1200px'
+-%}
+
+<product-context
+  class="product-information product-information--{{ layout }}"
+  data-section-id="{{ section.id }}"
+  data-product-id="{{ p.id }}"
+  data-url="{{ p.url }}"
+  data-money-format="{{ shop.money_format | escape }}"
+  style="
+    --fp-media-width: {{ media_width }}%;
+    --fp-max-width: {{ max_width }};
+    --fp-pt: {{ block.settings.padding_top }}px;
+    --fp-pb: {{ block.settings.padding_bottom }}px;
+    {% if block.settings.background != blank %}--fp-bg: {{ block.settings.background }};{% endif %}
+  "
+  {% if block.settings.sticky_atc %}data-sticky-atc{% endif %}
+  {{ block.shopify_attributes }}
+>
+  {%- if p != blank -%}
+    <script type="application/json" data-product-json>
+      {{ p.variants | json }}
+    </script>
+  {%- endif -%}
+
+  <div class="product-information__media">
+    {% content_for 'block', type: 'product-media', id: 'media', closest.product: p %}
+  </div>
+
+  <div class="product-information__details{% if block.settings.sticky_atc %} product-information__details--sticky{% endif %}">
+    {% content_for 'block', type: 'product-details', id: 'details', closest.product: p %}
+  </div>
+</product-context>
+
+{% stylesheet %}
+  .product-information {
+    display: grid;
+    gap: clamp(20px, 4vw, 48px);
+    align-items: start;
+    max-width: var(--fp-max-width, 1200px);
+    margin-inline: auto;
+    padding: var(--fp-pt, 0) var(--page-margin, 20px) var(--fp-pb, 0);
+    background: var(--fp-bg, transparent);
+  }
+
+  .product-information--media-left,
+  .product-information--media-right {
+    grid-template-columns: var(--fp-media-width, 48%) 1fr;
+  }
+  .product-information--media-right {
+    direction: rtl;
+  }
+  .product-information--media-right > * {
+    direction: ltr;
+  }
+  .product-information--stacked {
+    grid-template-columns: 1fr;
+    max-width: 720px;
+  }
+
+  .product-information__details {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .product-information__details form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  @media (min-width: 750px) {
+    .product-information__details--sticky {
+      position: sticky;
+      top: 24px;
+    }
+  }
+
+  @media (max-width: 749px) {
+    .product-information--media-left,
+    .product-information--media-right {
+      grid-template-columns: 1fr;
+      direction: ltr;
+    }
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  if (!customElements.get('product-context')) {
+    customElements.define('product-context', class extends HTMLElement {
+      connectedCallback() {
+        const json = this.querySelector('[data-product-json]');
+        try {
+          this.variants = json ? JSON.parse(json.textContent) : [];
+        } catch (e) {
+          this.variants = [];
+        }
+        this.idInput = this.querySelector('input[name="id"]');
+        this.addEventListener('change', this._onChange.bind(this));
+
+        // Establish current variant from the hidden input, else first available.
+        const initialId = this.idInput && this.idInput.value;
+        this.currentVariant =
+          this.variants.find((v) => String(v.id) === String(initialId)) ||
+          this.variants.find((v) => v.available) ||
+          this.variants[0] ||
+          null;
+
+        this._dispatch(false);
+      }
+
+      // Read the selected value for every option group rendered by the variant picker.
+      _selectedOptions() {
+        const groups = [...this.querySelectorAll('[data-option-position]')];
+        groups.sort(
+          (a, b) =>
+            Number(a.dataset.optionPosition) - Number(b.dataset.optionPosition)
+        );
+        return groups.map((group) => {
+          const select = group.querySelector('select[data-variant-option]');
+          if (select) return select.value;
+          const checked = group.querySelector('input[data-variant-option]:checked');
+          return checked ? checked.value : null;
+        });
+      }
+
+      _matchVariant(options) {
+        if (!options.length) return this.currentVariant;
+        return this.variants.find((variant) =>
+          options.every((value, i) => value == null || variant.options[i] === value)
+        );
+      }
+
+      _onChange(event) {
+        if (!event.target.matches('[data-variant-option]')) return;
+        const variant = this._matchVariant(this._selectedOptions());
+        this.currentVariant = variant || null;
+        if (this.idInput && variant) this.idInput.value = variant.id;
+        this._dispatch(true);
+        if (variant) this._updateUrl(variant);
+      }
+
+      _updateUrl(variant) {
+        if (!this.dataset.url || this.dataset.sectionId == null) return;
+        try {
+          const url = new URL(window.location.href);
+          url.searchParams.set('variant', variant.id);
+          window.history.replaceState({}, '', url.toString());
+        } catch (e) {
+          /* no-op */
+        }
+      }
+
+      _dispatch(userInitiated) {
+        this.dispatchEvent(
+          new CustomEvent('variant:change', {
+            bubbles: true,
+            detail: { variant: this.currentVariant, userInitiated },
+          })
+        );
+      }
+    });
+  }
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "Product information",
+  "blocks": [
+    { "type": "product-media" },
+    { "type": "product-details" }
+  ],
+  "settings": [
+    { "type": "product", "id": "product", "label": "Product" },
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Layout",
+      "default": "media-left",
+      "options": [
+        { "value": "media-left", "label": "Media left" },
+        { "value": "media-right", "label": "Media right" },
+        { "value": "stacked", "label": "Stacked" }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "media_width",
+      "label": "Media width",
+      "min": 30, "max": 70, "step": 1, "unit": "%",
+      "default": 48
+    },
+    {
+      "type": "checkbox",
+      "id": "sticky_atc",
+      "label": "Enable sticky add to cart",
+      "default": false
+    },
+    { "type": "header", "content": "Spacing" },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Section padding top",
+      "min": 0, "max": 120, "step": 2, "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Section padding bottom",
+      "min": 0, "max": 120, "step": 2, "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "select",
+      "id": "max_width",
+      "label": "Max content width",
+      "default": "1200px",
+      "options": [
+        { "value": "1000px", "label": "1000px" },
+        { "value": "1200px", "label": "1200px" },
+        { "value": "1400px", "label": "1400px" },
+        { "value": "100%", "label": "Full width" }
+      ]
+    },
+    { "type": "header", "content": "Background" },
+    { "type": "color", "id": "background", "label": "Section background" }
+  ]
+}
+{% endschema %}

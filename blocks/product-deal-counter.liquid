@@ -1,0 +1,110 @@
+{%- comment -%}
+  Block: product-deal-counter
+  Countdown timer to a deadline (e.g. flash sale).
+{%- endcomment -%}
+
+{%- liquid
+  assign show = block.settings.show
+-%}
+
+{%- if show -%}
+  <deal-counter
+    class="deal-counter"
+    data-end="{{ block.settings.end_date }}"
+    data-format="{{ block.settings.format }}"
+    style="
+      --dc-bg: {{ block.settings.bg_color | default: '#fef3c7' }};
+      --dc-color: {{ block.settings.text_color | default: '#92400e' }};
+      --dc-radius: {{ block.settings.radius }}px;
+    "
+    {{ block.shopify_attributes }}
+  >
+    <span class="deal-counter__label">{{ block.settings.label | escape }}</span>
+    <span class="deal-counter__time" data-countdown>--:--:--</span>
+  </deal-counter>
+{%- else -%}
+  <div {{ block.shopify_attributes }} hidden></div>
+{%- endif -%}
+
+{% stylesheet %}
+  .deal-counter {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--dc-bg, #fef3c7); color: var(--dc-color, #92400e);
+    border-radius: var(--dc-radius, 6px); padding: 10px 14px; font-size: 0.9rem;
+  }
+  .deal-counter__time { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .deal-counter--ended .deal-counter__time { opacity: 0.7; }
+{% endstylesheet %}
+
+{% javascript %}
+  if (!customElements.get('deal-counter')) {
+    customElements.define('deal-counter', class extends HTMLElement {
+      connectedCallback() {
+        this.output = this.querySelector('[data-countdown]');
+        this.end = Date.parse(this.dataset.end);
+        this.format = this.dataset.format || 'HH:MM:SS';
+        if (isNaN(this.end)) {
+          if (this.output) this.output.textContent = '';
+          return;
+        }
+        this._tick();
+        this._timer = setInterval(() => this._tick(), 1000);
+      }
+      disconnectedCallback() { clearInterval(this._timer); }
+      _pad(n) { return String(n).padStart(2, '0'); }
+      _tick() {
+        const diff = this.end - Date.now();
+        if (diff <= 0) {
+          clearInterval(this._timer);
+          this.classList.add('deal-counter--ended');
+          if (this.output) this.output.textContent = '00:00:00';
+          return;
+        }
+        const s = Math.floor(diff / 1000);
+        const days = Math.floor(s / 86400);
+        const hours = Math.floor((s % 86400) / 3600);
+        const mins = Math.floor((s % 3600) / 60);
+        const secs = s % 60;
+        let out;
+        if (this.format === 'DD:HH:MM:SS') {
+          out = this._pad(days) + 'd ' + this._pad(hours) + ':' + this._pad(mins) + ':' + this._pad(secs);
+        } else if (this.format === 'HH:MM') {
+          out = this._pad(hours + days * 24) + ':' + this._pad(mins);
+        } else {
+          out = this._pad(hours + days * 24) + ':' + this._pad(mins) + ':' + this._pad(secs);
+        }
+        if (this.output) this.output.textContent = out;
+      }
+    });
+  }
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "Deal counter",
+  "settings": [
+    { "type": "header", "content": "Timer" },
+    { "type": "checkbox", "id": "show", "label": "Show deal counter", "default": true },
+    { "type": "text", "id": "end_date", "label": "End date/time", "default": "2026-07-01 00:00", "info": "Format: YYYY-MM-DD HH:MM (store timezone)" },
+    { "type": "text", "id": "label", "label": "Label text", "default": "Deal ends in:" },
+    {
+      "type": "select",
+      "id": "format",
+      "label": "Timer format",
+      "default": "HH:MM:SS",
+      "options": [
+        { "value": "HH:MM:SS", "label": "HH:MM:SS" },
+        { "value": "DD:HH:MM:SS", "label": "DD:HH:MM:SS" },
+        { "value": "HH:MM", "label": "HH:MM" }
+      ]
+    },
+    { "type": "header", "content": "Style" },
+    { "type": "color", "id": "bg_color", "label": "Background color", "default": "#fef3c7" },
+    { "type": "color", "id": "text_color", "label": "Text color", "default": "#92400e" },
+    { "type": "range", "id": "radius", "label": "Border radius", "min": 0, "max": 24, "step": 1, "unit": "px", "default": 6 }
+  ],
+  "presets": [
+    { "name": "Deal counter" }
+  ]
+}
+{% endschema %}

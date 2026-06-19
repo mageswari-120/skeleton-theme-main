@@ -1,0 +1,54 @@
+{%- comment -%}
+  Snippet: product-media-item
+  Renders a single product media (image / video / external_video / 3d_model).
+
+  Parameters:
+    media   {Object}  required
+    product {Object}  required
+    zoom    {String}  'none' | 'lightbox'
+    block   {Object}  the product-media block (for video settings)
+    eager   {Boolean} load eagerly (first slide)
+{%- endcomment -%}
+
+{%- liquid
+  assign loading = 'lazy'
+  if eager
+    assign loading = 'eager'
+  endif
+  assign alt = media.alt | escape | default: product.title
+-%}
+
+{%- case media.media_type -%}
+  {%- when 'image' -%}
+    {%- if zoom == 'lightbox' -%}
+      <button type="button" class="product-media__zoom" data-zoom-trigger data-index="{{ media.position | minus: 1 }}" aria-label="Zoom image">
+        {{ media | image_url: width: 1200 | image_tag: loading: loading, widths: '360,540,720,900,1200', alt: alt, sizes: '(max-width: 749px) 100vw, 50vw' }}
+      </button>
+    {%- else -%}
+      {{ media | image_url: width: 1200 | image_tag: loading: loading, widths: '360,540,720,900,1200', alt: alt, sizes: '(max-width: 749px) 100vw, 50vw' }}
+    {%- endif -%}
+
+  {%- when 'video' -%}
+    {{ media | video_tag:
+      controls: block.settings.video_controls,
+      autoplay: block.settings.video_autoplay,
+      loop: block.settings.video_loop,
+      muted: block.settings.video_autoplay,
+      playsinline: true,
+      preload: 'metadata',
+      poster: media.preview_image | image_url: width: 1200
+    }}
+
+  {%- when 'external_video' -%}
+    {%- if media.host == 'youtube' -%}
+      <iframe class="product-media__external" src="https://www.youtube.com/embed/{{ media.external_id }}?rel=0{% if block.settings.video_autoplay %}&autoplay=1&mute=1{% endif %}{% if block.settings.video_loop %}&loop=1&playlist={{ media.external_id }}{% endif %}" title="{{ alt }}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+    {%- elsif media.host == 'vimeo' -%}
+      <iframe class="product-media__external" src="https://player.vimeo.com/video/{{ media.external_id }}?{% if block.settings.video_autoplay %}autoplay=1&muted=1{% endif %}{% if block.settings.video_loop %}&loop=1{% endif %}" title="{{ alt }}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+    {%- endif -%}
+
+  {%- when 'model' -%}
+    {{ media | model_viewer_tag: image_based_lighting: true, reveal: 'interaction' }}
+
+  {%- else -%}
+    {{ media.preview_image | image_url: width: 1200 | image_tag: loading: loading, alt: alt }}
+{%- endcase -%}

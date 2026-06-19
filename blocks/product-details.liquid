@@ -1,0 +1,53 @@
+{%- comment -%}
+  Block: product-details (container)
+  The reorderable "Details" column. Merchants add / reorder the
+  product info blocks inside it. Renders all children in order.
+{%- endcomment -%}
+
+<div
+  class="product-details"
+  style="--fp-details-gap: {{ block.settings.gap | default: 16 }}px;"
+  {{ block.shopify_attributes }}
+>
+  {% content_for 'blocks' %}
+</div>
+
+{% stylesheet %}
+  .product-details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--fp-details-gap, 16px);
+    width: 100%;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Details",
+  "blocks": [
+    { "type": "product-title" },
+    { "type": "product-price" },
+    { "type": "product-description" },
+    { "type": "separator" },
+    { "type": "product-variant-picker" },
+    { "type": "product-deal-counter" },
+    { "type": "product-buy-buttons" },
+    { "type": "product-inventory" },
+    { "type": "icon-with-text" },
+    { "type": "product-vendor" },
+    { "type": "product-pickup" },
+    { "type": "product-complementary" },
+    { "type": "product-collapse" },
+    { "type": "product-share" }
+  ],
+  "settings": [
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "Spacing between blocks",
+      "min": 0, "max": 48, "step": 2, "unit": "px",
+      "default": 16
+    }
+  ]
+}
+{% endschema %}

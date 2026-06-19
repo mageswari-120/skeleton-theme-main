@@ -1,0 +1,122 @@
+{%- comment -%}
+  Block: product-inventory
+  Stock status / low-stock indicator. Updates on variant:change.
+{%- endcomment -%}
+
+{%- liquid
+  assign p = block.settings.product
+  assign variant = p.selected_or_first_available_variant
+  assign threshold = block.settings.threshold | default: 10
+-%}
+
+<product-inventory
+  class="product-inventory"
+  data-threshold="{{ threshold }}"
+  data-show-count="{{ block.settings.show_count }}"
+  data-show-bar="{{ block.settings.show_bar }}"
+  {{ block.shopify_attributes }}
+>
+  {%- comment -%} Initial render for the current variant {%- endcomment -%}
+  {%- liquid
+    assign qty = variant.inventory_quantity
+    assign tracked = false
+    if variant.inventory_management != blank
+      assign tracked = true
+    endif
+  -%}
+  <div class="product-inventory__inner" data-inventory-inner>
+    {%- if variant.available -%}
+      {%- if tracked and qty > 0 and qty <= threshold -%}
+        <span class="product-inventory__dot product-inventory__dot--low"></span>
+        <span data-inventory-text>Only {{ qty }} left!</span>
+      {%- else -%}
+        <span class="product-inventory__dot product-inventory__dot--in"></span>
+        <span data-inventory-text>In stock</span>
+      {%- endif -%}
+    {%- else -%}
+      <span class="product-inventory__dot product-inventory__dot--out"></span>
+      <span data-inventory-text>Out of stock</span>
+    {%- endif -%}
+  </div>
+  {%- if block.settings.show_bar -%}
+    <div class="product-inventory__bar"><span data-inventory-bar style="width: 50%;"></span></div>
+  {%- endif -%}
+
+  <script type="application/json" data-inventory-json>
+    {
+      {%- for v in p.variants -%}
+        "{{ v.id }}": { "available": {{ v.available }}, "qty": {{ v.inventory_quantity | default: 0 }}, "tracked": {% if v.inventory_management != blank %}true{% else %}false{% endif %} }{% unless forloop.last %},{% endunless %}
+      {%- endfor -%}
+    }
+  </script>
+</product-inventory>
+
+{% stylesheet %}
+  .product-inventory { display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; }
+  .product-inventory__inner { display: flex; align-items: center; gap: 8px; }
+  .product-inventory__dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .product-inventory__dot--in { background: #16a34a; }
+  .product-inventory__dot--low { background: #f59e0b; }
+  .product-inventory__dot--out { background: #dc2626; }
+  .product-inventory__bar { height: 6px; background: #e5e7eb; border-radius: 999px; overflow: hidden; }
+  .product-inventory__bar span { display: block; height: 100%; background: #16a34a; transition: width 0.3s ease; }
+{% endstylesheet %}
+
+{% javascript %}
+  if (!customElements.get('product-inventory')) {
+    customElements.define('product-inventory', class extends HTMLElement {
+      connectedCallback() {
+        const json = this.querySelector('[data-inventory-json]');
+        try { this.data = json ? JSON.parse(json.textContent) : {}; } catch (e) { this.data = {}; }
+        this.threshold = Number(this.dataset.threshold) || 10;
+        this.text = this.querySelector('[data-inventory-text]');
+        this.dot = this.querySelector('.product-inventory__dot');
+        this.bar = this.querySelector('[data-inventory-bar]');
+        this._ctx = this.closest('product-context');
+        if (this._ctx) {
+          this._handler = this._onVariant.bind(this);
+          this._ctx.addEventListener('variant:change', this._handler);
+        }
+      }
+      disconnectedCallback() {
+        if (this._ctx && this._handler) this._ctx.removeEventListener('variant:change', this._handler);
+      }
+      _setDot(state) {
+        if (!this.dot) return;
+        this.dot.className = 'product-inventory__dot product-inventory__dot--' + state;
+      }
+      _onVariant(event) {
+        const variant = event.detail.variant;
+        if (!variant || !this.text) return;
+        const info = this.data[variant.id] || { available: variant.available, qty: 0, tracked: false };
+        if (!info.available) {
+          this._setDot('out'); this.text.textContent = 'Out of stock';
+          if (this.bar) this.bar.style.width = '0%';
+          return;
+        }
+        if (info.tracked && info.qty > 0 && info.qty <= this.threshold) {
+          this._setDot('low'); this.text.textContent = 'Only ' + info.qty + ' left!';
+          if (this.bar) this.bar.style.width = Math.max(8, (info.qty / this.threshold) * 100) + '%';
+        } else {
+          this._setDot('in'); this.text.textContent = 'In stock';
+          if (this.bar) this.bar.style.width = '100%';
+        }
+      }
+    });
+  }
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "Inventory status",
+  "settings": [
+    { "type": "product", "id": "product", "label": "Product" },
+    { "type": "range", "id": "threshold", "label": "Low stock threshold", "min": 1, "max": 50, "step": 1, "default": 10 },
+    { "type": "checkbox", "id": "show_count", "label": "Show exact count when low", "default": true },
+    { "type": "checkbox", "id": "show_bar", "label": "Show stock bar", "default": false }
+  ],
+  "presets": [
+    { "name": "Inventory status", "settings": { "product": "{{ closest.product }}" } }
+  ]
+}
+{% endschema %}

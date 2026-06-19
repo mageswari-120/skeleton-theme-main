@@ -1,0 +1,51 @@
+{%- comment -%}
+  Block: product-pickup
+  Local pickup availability for the current variant.
+{%- endcomment -%}
+
+{%- liquid
+  assign p = block.settings.product
+  assign variant = p.selected_or_first_available_variant
+  assign availabilities = variant.store_availabilities
+-%}
+
+<div class="product-pickup" {{ block.shopify_attributes }}>
+  {%- if availabilities.size > 0 -%}
+    {%- assign first = availabilities | where: 'available', true | first -%}
+    {%- if first -%}
+      <div class="product-pickup__row">
+        <span class="product-pickup__dot"></span>
+        <div>
+          <p class="product-pickup__title">Pickup available at {{ first.location.name | escape }}</p>
+          {%- if first.pick_up_time != blank -%}
+            <p class="product-pickup__meta">Usually ready in {{ first.pick_up_time }}</p>
+          {%- endif -%}
+        </div>
+      </div>
+    {%- else -%}
+      <p class="product-pickup__meta">Pickup currently unavailable</p>
+    {%- endif -%}
+  {%- else -%}
+    <p class="product-pickup__meta">Pickup availability will show here when configured.</p>
+  {%- endif -%}
+</div>
+
+{% stylesheet %}
+  .product-pickup { font-size: 0.85rem; }
+  .product-pickup__row { display: flex; gap: 10px; align-items: flex-start; }
+  .product-pickup__dot { width: 8px; height: 8px; border-radius: 50%; background: #16a34a; margin-top: 5px; flex: 0 0 auto; }
+  .product-pickup__title { margin: 0; font-weight: 600; }
+  .product-pickup__meta { margin: 2px 0 0; opacity: 0.7; }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Pickup availability",
+  "settings": [
+    { "type": "product", "id": "product", "label": "Product" }
+  ],
+  "presets": [
+    { "name": "Pickup availability", "settings": { "product": "{{ closest.product }}" } }
+  ]
+}
+{% endschema %}
